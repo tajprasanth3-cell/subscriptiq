@@ -21,6 +21,8 @@
     overflow-x: hidden;
     max-width: 100vw;
     position: relative;
+    margin: 0;
+    padding: 0;
   }
 
   /* Custom Touch Scrollbar */
@@ -56,9 +58,34 @@
 /* Ensure images & svgs never burst their containers */
 img, svg {
   max-width: 100%;
+  height: auto;
 }
 
-/* 1. Mobile Devices (Portrait & Landscape Phones: <= 640px) */
+/* 1. Extra Narrow Mobile Devices (<= 380px) */
+@media screen and (max-width: 380px) {
+  .responsive-container {
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+    padding-top: 0.75rem !important;
+  }
+
+  h1 {
+    font-size: 1.125rem !important;
+    line-height: 1.5rem !important;
+  }
+
+  h2 {
+    font-size: 1rem !important;
+    line-height: 1.375rem !important;
+  }
+
+  h3 {
+    font-size: 0.875rem !important;
+    line-height: 1.25rem !important;
+  }
+}
+
+/* 2. Standard Mobile Devices (Portrait & Landscape: <= 640px) */
 @media screen and (max-width: 640px) {
   /* Dynamic container and section spacing for mobile */
   .responsive-container {
@@ -81,7 +108,7 @@ img, svg {
     min-height: 38px;
   }
 
-  /* Compact typography on small mobile screens */
+  /* Compact typography on mobile */
   h1 {
     font-size: 1.25rem !important;
     line-height: 1.75rem !important;
@@ -111,12 +138,12 @@ img, svg {
   .responsive-modal {
     width: calc(100vw - 1.5rem) !important;
     max-height: 92vh !important;
-    padding: 1.25rem !important;
+    padding: 1rem !important;
     margin: auto !important;
   }
 }
 
-/* 2. Tablet Devices (Portrait & Small Laptops: 641px to 1024px) */
+/* 3. Tablet Devices (Portrait & Small Laptops: 641px to 1024px) */
 @media screen and (min-width: 641px) and (max-width: 1024px) {
   .responsive-container {
     padding-left: 1.25rem !important;
@@ -128,6 +155,10 @@ img, svg {
   /* Optimized 2-column grid adaptation for tablet viewports */
   .tablet-grid-2 {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .tablet-grid-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
   }
 
   /* Smooth horizontal scrolling for tables */
@@ -142,7 +173,7 @@ img, svg {
   }
 }
 
-/* 3. Desktop Devices (1025px and wider) */
+/* 4. Desktop Devices (1025px and wider) */
 @media screen and (min-width: 1025px) {
   .responsive-container {
     padding-left: 2rem !important;
@@ -152,14 +183,14 @@ img, svg {
   }
 }
 
-/* 4. High-DPI / Retina Displays */
+/* 5. High-DPI / Retina Displays */
 @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
   svg {
     shape-rendering: geometricPrecision;
   }
 }
 
-/* 5. Clean Print Styles for Invoices & Receipts */
+/* 6. Clean Print Styles for Invoices & Receipts */
 @media print {
   body {
     background-color: #ffffff !important;
