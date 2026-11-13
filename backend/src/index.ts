@@ -1,11 +1,15 @@
 import { createApp } from './app';
 import { env } from './config/env';
+import { connectDatabase, disconnectDatabase } from './config/db';
 import { getStore, storePath } from './store/store';
 
-function bootstrap(): void {
+async function bootstrap(): Promise<void> {
   // Initialise the store eagerly so seed/persistence errors surface at startup.
   const store = getStore();
   const app = createApp();
+
+  // Connect to MongoDB Atlas (if configured)
+  await connectDatabase();
 
   const server = app.listen(env.port, () => {
     console.log('');
@@ -21,8 +25,9 @@ function bootstrap(): void {
 
   const shutdown = (signal: string) => {
     console.log(`\n${signal} received — shutting down gracefully...`);
-    server.close(() => {
+    server.close(async () => {
       store.persist();
+      await disconnectDatabase();
       process.exit(0);
     });
     setTimeout(() => process.exit(1), 5000).unref();
@@ -32,4 +37,4 @@ function bootstrap(): void {
   process.on('SIGTERM', () => shutdown('SIGTERM'));
 }
 
-bootstrap();
+void bootstrap();
