@@ -73,65 +73,65 @@ export const BusinessDashboard = () => {
         {/* Row 1: Top Overview KPI Cards (Mockup 2 & Slide 7) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4 lg:gap-6">
           {/* Card 1: Plan */}
-          <Card className="flex flex-col justify-between">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              Plan
-            </span>
-            <div className="flex flex-wrap items-start justify-between gap-x-2 gap-y-1 mt-1 sm:mt-2">
-              <h3 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-slate-900 break-words min-w-0 flex-1">
-                {currentPlan}
-              </h3>
+          <Card className="flex flex-col min-w-0">
+            <div className="flex items-center justify-between gap-2 min-h-5">
+              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                Plan
+              </span>
               <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 shrink-0">
                 Active
               </span>
             </div>
-            <p className="text-xs text-slate-400 mt-2 sm:mt-4 break-words">100k requests SLA</p>
+            <h3 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-slate-900 leading-tight mt-2">
+              {currentPlan}
+            </h3>
+            <p className="text-xs text-slate-400 mt-auto pt-3">100k requests SLA</p>
           </Card>
 
           {/* Card 2: Estimated Charge */}
-          <Card className="flex flex-col justify-between">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              Estimated charge
-            </span>
-            <div className="flex items-baseline justify-between mt-1 sm:mt-2">
-              <h3 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-slate-900">
-                {formatCurrency(currentInvoice.total)}
-              </h3>
-              <span className="text-xs text-slate-400 font-medium">this period</span>
+          <Card className="flex flex-col min-w-0">
+            <div className="flex items-center justify-between gap-2 min-h-5">
+              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                Estimated charge
+              </span>
+              <span className="text-xs text-slate-400 font-medium shrink-0">this period</span>
             </div>
-            <p className="text-xs text-slate-400 mt-2 sm:mt-4">Auto-debit on Apr 30</p>
+            <h3 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-slate-900 leading-tight mt-2">
+              {formatCurrency(currentInvoice.total)}
+            </h3>
+            <p className="text-xs text-slate-400 mt-auto pt-3">Auto-debit on Apr 30</p>
           </Card>
 
           {/* Card 3: Next Renewal */}
-          <Card className="flex flex-col justify-between">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              Next renewal
-            </span>
-            <div className="flex items-baseline justify-between mt-1 sm:mt-2">
-              <h3 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-slate-900">
-                Apr 30, 2026
-              </h3>
+          <Card className="flex flex-col min-w-0">
+            <div className="flex items-center justify-between gap-2 min-h-5">
+              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                Next renewal
+              </span>
               <span className="text-xs font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md shrink-0">
                 Auto-renew
               </span>
             </div>
-            <p className="text-xs text-slate-400 mt-2 sm:mt-4">Auto-renew on file</p>
+            <h3 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-slate-900 leading-tight mt-2">
+              Apr 30, 2026
+            </h3>
+            <p className="text-xs text-slate-400 mt-auto pt-3">Auto-renew on file</p>
           </Card>
 
           {/* Card 4: Total API Requests (Slide 7) */}
-          <Card className="flex flex-col justify-between">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              Total API requests
-            </span>
-            <div className="flex items-baseline justify-between mt-1 sm:mt-2">
-              <h3 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-slate-900">
-                72,450
-              </h3>
+          <Card className="flex flex-col min-w-0">
+            <div className="flex items-center justify-between gap-2 min-h-5">
+              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                Total API requests
+              </span>
               <span className="text-xs font-semibold text-emerald-600 flex items-center shrink-0">
                 +12% <ArrowUpRight className="w-3.5 h-3.5" />
               </span>
             </div>
-            <p className="text-xs text-slate-400 mt-2 sm:mt-4">72.5% of total capacity</p>
+            <h3 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-slate-900 leading-tight mt-2">
+              72,450
+            </h3>
+            <p className="text-xs text-slate-400 mt-auto pt-3">72.5% of total capacity</p>
           </Card>
         </div>
 
