@@ -67,6 +67,7 @@ interface AppContextType {
   logout: () => void;
   toggleRole: () => void;
   setRole: (role: Role) => void;
+  refreshWorkspace: () => Promise<void>;
 
   // Navigation
   currentTab: NavTabId;
@@ -81,7 +82,7 @@ interface AppContextType {
   subscriptionStatus: SubscriptionStatus;
   billingCycle: 'monthly' | 'annual';
   setBillingCycle: (cycle: 'monthly' | 'annual') => void;
-  upgradePlan: (plan: PlanTier) => void;
+  upgradePlan: (plan: PlanTier) => Promise<boolean>;
   createPlan: (newPlan: Omit<Plan, 'id'>) => void;
   deletePlan: (id: string) => void;
   cancelSubscription: () => void;
@@ -100,7 +101,7 @@ interface AppContextType {
   selectedInvoiceForModal: Invoice | null;
   setSelectedInvoiceForModal: (inv: Invoice | null) => void;
   downloadInvoicePDF: (invoiceId: string) => void;
-  payInvoice: (invoiceId: string) => void;
+  payInvoice: (invoiceId: string) => Promise<Invoice | null>;
 
   // Customers
   customers: Customer[];
@@ -113,6 +114,7 @@ interface AppContextType {
   notifications: AlertNotification[];
   triggerTestAlert: (msg?: string) => void;
   markNotificationsAsRead: () => void;
+  markSingleNotificationAsRead: (id: string) => void;
   unreadCount: number;
 
   // Admin
@@ -229,6 +231,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const loadWorkspace = useCallback(
     async (activeRole: Role) => {
+      const customersPage =
+        activeRole === 'Customer'
+          ? { items: [], total: 0, page: 1, pageSize: 100, totalPages: 1 }
+          : await api.customers.list({ page: 1, pageSize: 100 });
+
       const [
         plans,
         subscription,
@@ -236,7 +243,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         eventsPage,
         invoice,
         invoicesPage,
-        customersPage,
         rules,
         notificationsPage,
       ] = await Promise.all([
@@ -246,7 +252,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         api.usage.events({ page: 1, pageSize: 100 }),
         api.billing.current(),
         api.billing.invoices({ page: 1, pageSize: 100 }),
-        api.customers.list({ page: 1, pageSize: 100 }),
         api.alerts.rules(),
         api.alerts.notifications({ page: 1, pageSize: 100 }),
       ]);
@@ -272,6 +277,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     },
     [applySubscription]
   );
+
+  // Serialize refreshes so an older in-flight load cannot overwrite newer state.
+  const refreshChain = useRef<Promise<void>>(Promise.resolve());
+  const refreshWorkspace = useCallback(() => {
+    const next = refreshChain.current.then(() => loadWorkspace(role));
+    refreshChain.current = next.catch(() => undefined);
+    return next;
+  }, [loadWorkspace, role]);
 
   // Restore an existing session on boot.
   useEffect(() => {
@@ -312,6 +325,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         applyUser(result.user);
         setIsAuthenticated(true);
         setCurrentTabState(result.user.role === 'Super Admin' ? 'admin' : 'dashboard');
+        setIsMobileMenuOpen(false);
         try {
           await loadWorkspace(result.user.role);
         } catch (error) {
@@ -363,11 +377,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     clearToken();
     setIsAuthenticated(false);
     setCurrentTabState('dashboard');
+    setIsMobileMenuOpen(false);
     showToast('Signed out successfully.', 'info');
   };
 
   const setRole = (newRole: Role) => {
     setRoleState(newRole);
+    setCurrentTabState(newRole === 'Super Admin' ? 'admin' : 'dashboard');
+    setIsMobileMenuOpen(false);
   };
 
   const toggleRole = () => {
@@ -378,37 +395,38 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         ? 'Customer'
         : 'Business Owner';
     const credentials = DEMO_CREDENTIALS[nextRole];
+    setIsMobileMenuOpen(false);
     showToast(`Switching to ${nextRole} workspace...`, 'info');
     login(credentials.email, credentials.password);
   };
 
-  const upgradePlan = (plan: PlanTier) => {
-    void (async () => {
+  const upgradePlan = async (plan: PlanTier): Promise<boolean> => {
+    try {
+      const subscription = await api.subscription.change(plan, billingCycle);
+      applySubscription(subscription);
+      const [plans, invoice, notificationsPage] = await Promise.all([
+        api.plans.list(),
+        api.billing.current(),
+        api.alerts.notifications({ page: 1, pageSize: 100 }),
+      ]);
+      setPlansList(plans);
+      setCurrentInvoice(invoice);
+      setNotifications(notificationsPage.items);
+
+      // Update audit logs if admin endpoint is available
       try {
-        const subscription = await api.subscription.change(plan, billingCycle);
-        applySubscription(subscription);
-        const [plans, invoice, notificationsPage] = await Promise.all([
-          api.plans.list(),
-          api.billing.current(),
-          api.alerts.notifications({ page: 1, pageSize: 100 }),
-        ]);
-        setPlansList(plans);
-        setCurrentInvoice(invoice);
-        setNotifications(notificationsPage.items);
-
-        // Update audit logs if admin endpoint is available
-        try {
-          const auditPage = await api.admin.auditLogs({ page: 1, pageSize: 100 });
-          setAuditLogs(auditPage.items);
-        } catch {
-          // Non-admin roles might not have direct audit route access
-        }
-
-        showToast(`Plan successfully changed to ${plan}!`, 'success');
-      } catch (error) {
-        fail(error);
+        const auditPage = await api.admin.auditLogs({ page: 1, pageSize: 100 });
+        setAuditLogs(auditPage.items);
+      } catch {
+        // Non-admin roles might not have direct audit route access
       }
-    })();
+
+      showToast(`Plan successfully changed to ${plan}!`, 'success');
+      return true;
+    } catch (error) {
+      fail(error);
+      return false;
+    }
   };
 
   const createPlan = (newPlan: Omit<Plan, 'id'>) => {
@@ -513,24 +531,24 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setSelectedInvoiceForModal(invoice);
   };
 
-  const payInvoice = (invoiceId: string) => {
-    void (async () => {
-      try {
-        const paid = await api.billing.pay(invoiceId);
-        if (paid.id === currentInvoice.id || invoiceId === 'inv_current') {
-          setCurrentInvoice(paid);
-        }
-        setBillingHistory((prev) =>
-          prev.map((inv) => (inv.id === paid.id ? paid : inv))
-        );
-        setSelectedInvoiceForModal((prev) =>
-          prev && (prev.id === paid.id || invoiceId === 'inv_current') ? paid : prev
-        );
-        showToast(`Invoice ${paid.invoiceNumber} marked as paid.`, 'success');
-      } catch (error) {
-        fail(error);
+  const payInvoice = async (invoiceId: string): Promise<Invoice | null> => {
+    try {
+      const paid = await api.billing.pay(invoiceId);
+      if (paid.id === currentInvoice.id || invoiceId === 'inv_current') {
+        setCurrentInvoice(paid);
       }
-    })();
+      setBillingHistory((prev) =>
+        prev.map((inv) => (inv.id === paid.id ? paid : inv))
+      );
+      setSelectedInvoiceForModal((prev) =>
+        prev && (prev.id === paid.id || invoiceId === 'inv_current') ? paid : prev
+      );
+      showToast(`Invoice ${paid.invoiceNumber} marked as paid.`, 'success');
+      return paid;
+    } catch (error) {
+      fail(error);
+      return null;
+    }
   };
 
   const addCustomer = (cust: Omit<Customer, 'id'>) => {
@@ -594,6 +612,12 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     })();
   };
 
+  const markSingleNotificationAsRead = (id: string) => {
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, unread: false } : n))
+    );
+  };
+
   const unreadCount = notifications.filter((n) => n.unread).length;
 
   return (
@@ -603,6 +627,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         currentUserEmail,
         role,
         organizationName,
+        refreshWorkspace,
         login,
         register,
         logout,
@@ -642,6 +667,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         notifications,
         triggerTestAlert,
         markNotificationsAsRead,
+        markSingleNotificationAsRead,
         unreadCount,
         auditLogs,
         adminStats,

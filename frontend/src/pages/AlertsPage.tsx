@@ -19,13 +19,17 @@ import clsx from 'clsx';
 
 export const AlertsPage = () => {
   const {
+    role,
     alertRules,
     updateAlertRules,
     notifications,
     triggerTestAlert,
     markNotificationsAsRead,
+    markSingleNotificationAsRead,
     unreadCount,
   } = useApp();
+
+  const canManageAlerts = role !== 'Customer';
 
   const [formRules, setFormRules] = useState<AlertRules>(alertRules);
   const [isSaved, setIsSaved] = useState(false);
@@ -78,30 +82,38 @@ export const AlertsPage = () => {
         title="Limits and alerts"
         subtitle="Rules for thresholds and exceeded limits & live activity stream"
         actions={
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              icon={<Zap className="w-3.5 h-3.5" />}
-              onClick={() => triggerTestAlert()}
-            >
-              Test Trigger
-            </Button>
-            <Button
-              variant="primary"
-              size="md"
-              icon={isSaved ? <Check className="w-4 h-4" /> : <BellRing className="w-4 h-4" />}
-              onClick={handleSave}
-            >
-              {isSaved ? 'Rules Saved!' : 'Save rules'}
-            </Button>
-          </div>
+          canManageAlerts ? (
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                icon={<Zap className="w-3.5 h-3.5" />}
+                onClick={() => triggerTestAlert()}
+              >
+                Test Trigger
+              </Button>
+              <Button
+                variant="primary"
+                size="md"
+                icon={isSaved ? <Check className="w-4 h-4" /> : <BellRing className="w-4 h-4" />}
+                onClick={handleSave}
+              >
+                {isSaved ? 'Rules Saved!' : 'Save rules'}
+              </Button>
+            </div>
+          ) : undefined
         }
       />
 
       <div className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 max-w-7xl w-full mx-auto responsive-container">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div
+          className={clsx(
+            'grid grid-cols-1 gap-8',
+            canManageAlerts && 'lg:grid-cols-2'
+          )}
+        >
           {/* Left Column: Threshold Alerts Form */}
+          {canManageAlerts && (
           <Card className="space-y-6">
             <h3 className="font-bold text-base text-slate-900 pb-3 border-b border-slate-100">
               Threshold alerts
@@ -207,6 +219,7 @@ export const AlertsPage = () => {
               </div>
             </div>
           </Card>
+          )}
 
           {/* Right Column: Notifications Feed (Slide 13) */}
           <Card className="space-y-4">
@@ -236,23 +249,51 @@ export const AlertsPage = () => {
                 return (
                   <div
                     key={n.id}
+                    onClick={() => {
+                      if (n.unread) markSingleNotificationAsRead(n.id);
+                    }}
                     className={clsx(
-                      'p-3 sm:p-3.5 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-3.5 transition-colors',
-                      n.unread ? 'bg-indigo-50/30 border-indigo-200' : 'bg-slate-50/80 border-slate-100'
+                      'p-3 sm:p-3.5 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-3.5 transition-all cursor-pointer',
+                      n.unread
+                        ? 'bg-indigo-50/40 border-indigo-200/90 hover:bg-indigo-50/70 shadow-2xs'
+                        : 'bg-slate-50/80 border-slate-100 hover:bg-slate-100/60'
                     )}
+                    title={n.unread ? 'Click to mark as read' : 'Read notification'}
                   >
-                    <div className="flex items-start sm:items-center gap-3">
+                    <div className="flex items-start sm:items-center gap-3 min-w-0">
                       {getNotificationIcon(n.message, n.type)}
-                      <div>
-                        <p className="text-xs md:text-sm font-semibold text-slate-800 leading-snug">
-                          {n.message}
-                        </p>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="text-xs md:text-sm font-semibold text-slate-800 leading-snug break-words">
+                            {n.message}
+                          </p>
+                          {n.unread && (
+                            <span className="w-2 h-2 rounded-full bg-indigo-600 shrink-0" title="Unread" />
+                          )}
+                        </div>
                         <p className="text-[11px] text-slate-400 font-medium mt-0.5">{n.type}</p>
                       </div>
                     </div>
-                    <span className="text-[11px] sm:text-xs text-slate-400 font-medium shrink-0 pl-11 sm:pl-0 sm:ml-2">
-                      {n.timestamp}
-                    </span>
+                    <div className="flex items-center gap-2 shrink-0 pl-11 sm:pl-0 sm:ml-2">
+                      <span className="text-[11px] sm:text-xs text-slate-400 font-medium">
+                        {n.timestamp}
+                      </span>
+                      {n.unread ? (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            markSingleNotificationAsRead(n.id);
+                          }}
+                          className="text-[11px] font-semibold text-indigo-600 hover:text-indigo-800 bg-white px-2 py-0.5 rounded-lg border border-indigo-200 hover:border-indigo-300 transition-all cursor-pointer"
+                        >
+                          Mark read
+                        </button>
+                      ) : (
+                        <span className="text-[10px] text-slate-400 font-medium bg-slate-200/60 px-1.5 py-0.5 rounded-md">
+                          Read
+                        </span>
+                      )}
+                    </div>
                   </div>
                 );
               })}
