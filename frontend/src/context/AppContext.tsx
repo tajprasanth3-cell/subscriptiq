@@ -63,7 +63,7 @@ interface AppContextType {
   role: Role;
   organizationName: string;
   login: (email: string, password: string) => void;
-  register: (organizationName: string, email: string, password: string) => void;
+  register: (organizationName: string, email: string, password: string, roleToRegister?: Role) => void;
   logout: () => void;
   toggleRole: () => void;
   setRole: (role: Role) => void;
@@ -100,6 +100,7 @@ interface AppContextType {
   selectedInvoiceForModal: Invoice | null;
   setSelectedInvoiceForModal: (inv: Invoice | null) => void;
   downloadInvoicePDF: (invoiceId: string) => void;
+  payInvoice: (invoiceId: string) => void;
 
   // Customers
   customers: Customer[];
@@ -323,10 +324,20 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     })();
   };
 
-  const register = (organizationNameInput: string, email: string, password: string) => {
+  const register = (
+    organizationNameInput: string,
+    email: string,
+    password: string,
+    roleToRegister: Role = 'Business Owner'
+  ) => {
     void (async () => {
       try {
-        const result = await api.auth.register(organizationNameInput, email, password);
+        const result = await api.auth.register(
+          organizationNameInput,
+          email,
+          password,
+          roleToRegister
+        );
         setToken(result.token);
         applyUser(result.user);
         setIsAuthenticated(true);
@@ -336,7 +347,12 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         } catch (error) {
           fail(error);
         }
-        showToast(`Organization "${organizationNameInput}" registered!`, 'success');
+        showToast(
+          roleToRegister === 'Customer'
+            ? `Customer account for "${organizationNameInput}" created!`
+            : `Organization "${organizationNameInput}" registered!`,
+          'success'
+        );
       } catch (error) {
         fail(error);
       }
@@ -483,6 +499,26 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setSelectedInvoiceForModal(invoice);
   };
 
+  const payInvoice = (invoiceId: string) => {
+    void (async () => {
+      try {
+        const paid = await api.billing.pay(invoiceId);
+        if (paid.id === currentInvoice.id || invoiceId === 'inv_current') {
+          setCurrentInvoice(paid);
+        }
+        setBillingHistory((prev) =>
+          prev.map((inv) => (inv.id === paid.id ? paid : inv))
+        );
+        setSelectedInvoiceForModal((prev) =>
+          prev && (prev.id === paid.id || invoiceId === 'inv_current') ? paid : prev
+        );
+        showToast(`Invoice ${paid.invoiceNumber} marked as paid.`, 'success');
+      } catch (error) {
+        fail(error);
+      }
+    })();
+  };
+
   const addCustomer = (cust: Omit<Customer, 'id'>) => {
     void (async () => {
       try {
@@ -583,6 +619,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         selectedInvoiceForModal,
         setSelectedInvoiceForModal,
         downloadInvoicePDF,
+        payInvoice,
         customers,
         addCustomer,
         updateCustomerStatus,

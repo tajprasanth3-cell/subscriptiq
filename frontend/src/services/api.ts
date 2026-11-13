@@ -184,11 +184,11 @@ export const api = {
         auth: false,
         body: JSON.stringify({ email, password }),
       }),
-    register: (organizationName: string, email: string, password: string) =>
+    register: (organizationName: string, email: string, password: string, role: Role = 'Business Owner') =>
       request<AuthResult>('/auth/register', {
         method: 'POST',
         auth: false,
-        body: JSON.stringify({ organizationName, email, password }),
+        body: JSON.stringify({ organizationName, email, password, role }),
       }),
     me: () => request<{ user: AuthUser }>('/auth/me'),
   },
@@ -246,6 +246,12 @@ export const api = {
           search: params.search,
         })}`
       ),
+    invoice: (id: string) =>
+      request<Invoice>(`/billing/invoices/${encodeURIComponent(id)}`),
+    pay: (id: string) =>
+      request<Invoice>(`/billing/invoices/${encodeURIComponent(id)}/pay`, {
+        method: 'POST',
+      }),
   },
 
   customers: {

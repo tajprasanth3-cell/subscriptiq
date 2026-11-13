@@ -195,15 +195,46 @@ img, svg {
   body {
     background-color: #ffffff !important;
     color: #000000 !important;
+    overflow: visible !important;
   }
 
-  header, aside, .print\:hidden, button {
+  .print\:hidden,
+  button {
     display: none !important;
   }
 
-  main {
+  /* When the invoice modal is open, print only the invoice sheet. */
+  .app-shell > aside,
+  .app-shell > main,
+  .app-shell > header,
+  .app-shell > .toast-container {
+    display: none !important;
+  }
+
+  .invoice-modal-overlay {
+    position: static !important;
+    display: block !important;
+    background: none !important;
     padding: 0 !important;
-    margin: 0 !important;
+    overflow: visible !important;
+    backdrop-filter: none !important;
+  }
+
+  .invoice-print-area {
+    position: static !important;
+    display: block !important;
     width: 100% !important;
+    max-width: 100% !important;
+    max-height: none !important;
+    overflow: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+
+  @page {
+    margin: 12mm;
   }
 }

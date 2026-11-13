@@ -16,17 +16,17 @@ export const InvoiceModal = ({ invoice, onClose }: InvoiceModalProps) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-150">
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-2xl w-full max-h-[92vh] overflow-y-auto p-4 sm:p-6 md:p-8 space-y-5 sm:space-y-6 my-auto">
+    <div className="invoice-modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-3 sm:p-4 overflow-y-auto overflow-x-hidden animate-in fade-in duration-150">
+      <div className="invoice-print-area responsive-modal bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-2xl w-full max-h-[92vh] overflow-y-auto overflow-x-hidden p-4 sm:p-6 md:p-8 space-y-5 sm:space-y-6 my-auto">
         {/* Header Actions */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-100 print:hidden">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-start sm:items-center justify-between gap-2 pb-4 border-b border-slate-100 print:hidden">
+          <div className="flex flex-wrap items-center gap-2 min-w-0">
             <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
               Tax Invoice Document
             </span>
             <Badge variant="active">{invoice.status}</Badge>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button
               variant="outline"
               size="sm"
@@ -60,8 +60,10 @@ export const InvoiceModal = ({ invoice, onClose }: InvoiceModalProps) => {
               <p className="text-xs text-slate-400">GSTIN: 29AABCU9603R1ZM</p>
             </div>
 
-            <div className="text-left sm:text-right">
-              <h2 className="text-2xl font-black text-slate-900">{invoice.invoiceNumber}</h2>
+            <div className="text-left sm:text-right min-w-0 max-w-full">
+              <h2 className="text-xl sm:text-2xl font-black text-slate-900 break-all">
+                {invoice.invoiceNumber}
+              </h2>
               <p className="text-xs text-slate-500 mt-1">
                 Issued Date: <strong className="text-slate-700">Apr 01, 2026</strong>
               </p>
@@ -72,19 +74,19 @@ export const InvoiceModal = ({ invoice, onClose }: InvoiceModalProps) => {
           </div>
 
           <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 flex flex-col sm:flex-row justify-between text-xs gap-3">
-            <div>
+            <div className="min-w-0">
               <p className="font-bold uppercase text-[10px] tracking-wider text-slate-400 mb-1">
                 Billed To:
               </p>
-              <p className="font-bold text-slate-900 text-sm">Acme Corp</p>
+              <p className="font-bold text-slate-900 text-sm">{invoice.customer || 'Acme Corp'}</p>
               <p className="text-slate-500">ATTN: Accounts Payable</p>
-              <p className="text-slate-500">finance@acme.com</p>
+              <p className="text-slate-500 break-all">finance@acme.com</p>
             </div>
-            <div>
+            <div className="min-w-0 sm:text-right">
               <p className="font-bold uppercase text-[10px] tracking-wider text-slate-400 mb-1">
                 Payment Method:
               </p>
-              <p className="font-semibold text-slate-800">
+              <p className="font-semibold text-slate-800 break-words">
                 {invoice.paymentMethod || 'Visa ending in 4242'}
               </p>
               <div className="flex items-center gap-1 text-emerald-600 mt-1 font-medium">
@@ -109,9 +111,11 @@ export const InvoiceModal = ({ invoice, onClose }: InvoiceModalProps) => {
                 {invoice.lineItems.length > 0 ? (
                   invoice.lineItems.map((item) => (
                     <tr key={item.id}>
-                      <td className="py-3 px-4 font-semibold text-slate-900">{item.lineItem}</td>
-                      <td className="py-3 px-4 text-slate-500">{item.sourceUsage}</td>
-                      <td className="py-3 px-4 text-slate-500">{item.rate}</td>
+                      <td className="py-3 px-4 font-semibold text-slate-900 break-words">
+                        {item.lineItem}
+                      </td>
+                      <td className="py-3 px-4 text-slate-500 break-words">{item.sourceUsage}</td>
+                      <td className="py-3 px-4 text-slate-500 break-words">{item.rate}</td>
                       <td className="py-3 px-4 text-right font-mono font-semibold text-slate-900">
                         {formatCurrency(item.amount, invoice.currency)}
                       </td>
@@ -135,20 +139,20 @@ export const InvoiceModal = ({ invoice, onClose }: InvoiceModalProps) => {
 
           {/* Totals */}
           <div className="flex justify-end pt-2">
-            <div className="w-64 space-y-2 text-xs">
-              <div className="flex justify-between text-slate-500">
+            <div className="w-full max-w-xs space-y-2 text-xs">
+              <div className="flex flex-wrap justify-between gap-2 text-slate-500">
                 <span>Subtotal</span>
                 <span className="font-mono font-semibold text-slate-700">
                   {formatCurrency(invoice.total, invoice.currency)}
                 </span>
               </div>
-              <div className="flex justify-between text-slate-500">
+              <div className="flex flex-wrap justify-between gap-2 text-slate-500">
                 <span>GST / Tax (18% included)</span>
                 <span className="font-mono font-semibold text-slate-700">
                   {formatCurrency(Math.round(invoice.total * 0.18), invoice.currency)}
                 </span>
               </div>
-              <div className="flex justify-between border-t border-slate-200 pt-2 text-sm font-extrabold text-slate-900">
+              <div className="flex flex-wrap justify-between gap-2 border-t border-slate-200 pt-2 text-sm font-extrabold text-slate-900">
                 <span>Total Amount Due</span>
                 <span className="font-mono text-indigo-700 text-lg">
                   {formatCurrency(invoice.total, invoice.currency)}

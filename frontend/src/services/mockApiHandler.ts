@@ -134,18 +134,24 @@ export async function mockApiHandler<T>(path: string, options: RequestInit = {})
   }
 
   if (pathname === '/auth/register' && method === 'POST') {
-    const { organizationName, email } = body;
+    const { organizationName, email, role } = body;
+    const assignedRole: Role = role === 'Customer' ? 'Customer' : 'Business Owner';
     currentAuthUser = {
       id: `user_${Date.now()}`,
-      email: email || 'owner@newbiz.com',
-      name: organizationName ? `${organizationName} Admin` : 'Founder',
-      role: 'Business Owner',
+      email: email || (assignedRole === 'Customer' ? 'customer@techcorp.io' : 'owner@newbiz.com'),
+      name: organizationName
+        ? `${organizationName} User`
+        : assignedRole === 'Customer'
+        ? 'Customer Client'
+        : 'Founder',
+      role: assignedRole,
       organizationId: `org_${Date.now()}`,
-      organizationName: organizationName || 'My Organization',
+      organizationName:
+        organizationName || (assignedRole === 'Customer' ? 'TechCorp' : 'My Organization'),
     };
 
     const result: AuthResult = {
-      token: `mock_jwt_token_Owner_${Date.now()}`,
+      token: `mock_jwt_token_${assignedRole.replace(/\s+/g, '_')}_${Date.now()}`,
       user: currentAuthUser,
     };
     return result as T;
@@ -287,14 +293,71 @@ export async function mockApiHandler<T>(path: string, options: RequestInit = {})
   }
 
   if (pathname === '/billing/invoices' && method === 'GET') {
+    const search = (url.searchParams.get('search') ?? '').trim().toLowerCase();
+    const requestedPage = Number(url.searchParams.get('page') ?? 1) || 1;
+    const pageSize = Number(url.searchParams.get('pageSize') ?? 100) || 100;
+
+    const filtered = invoicesState.filter(
+      (inv) =>
+        search === '' ||
+        inv.invoiceNumber.toLowerCase().includes(search) ||
+        (inv.customer ?? '').toLowerCase().includes(search)
+    );
+
+    const total = filtered.length;
+    const totalPages = Math.max(1, Math.ceil(total / pageSize));
+    const page = Math.min(Math.max(1, requestedPage), totalPages);
+    const start = (page - 1) * pageSize;
+
     const result: Paginated<Invoice> = {
-      items: invoicesState,
-      total: invoicesState.length,
-      page: 1,
-      pageSize: 100,
-      totalPages: 1,
+      items: filtered.slice(start, start + pageSize),
+      total,
+      page,
+      pageSize,
+      totalPages,
     };
     return result as T;
+  }
+
+  if (
+    pathname.startsWith('/billing/invoices/') &&
+    pathname.endsWith('/pay') &&
+    method === 'POST'
+  ) {
+    const id = decodeURIComponent(
+      pathname.replace('/billing/invoices/', '').replace('/pay', '')
+    );
+    const target =
+      id === 'inv_current'
+        ? currentInvoiceState
+        : invoicesState.find((inv) => inv.id === id || inv.invoiceNumber === id);
+
+    if (!target) {
+      throw new Error(`Invoice "${id}" was not found`);
+    }
+    if (target.status === 'Paid') {
+      throw new Error(`Invoice ${target.invoiceNumber} is already paid`);
+    }
+
+    const paid: Invoice = { ...target, status: 'Paid' };
+    if (id === 'inv_current') {
+      currentInvoiceState = paid;
+    } else {
+      invoicesState = invoicesState.map((inv) => (inv.id === paid.id ? paid : inv));
+    }
+    return paid as T;
+  }
+
+  if (pathname.startsWith('/billing/invoices/') && method === 'GET') {
+    const id = decodeURIComponent(pathname.replace('/billing/invoices/', ''));
+    const invoice =
+      id === 'inv_current'
+        ? currentInvoiceState
+        : invoicesState.find((inv) => inv.id === id || inv.invoiceNumber === id);
+    if (!invoice) {
+      throw new Error(`Invoice "${id}" was not found`);
+    }
+    return invoice as T;
   }
 
   // 6. Customers endpoints

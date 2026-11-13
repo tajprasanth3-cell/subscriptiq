@@ -56,7 +56,7 @@ billingRouter.get(
 
 billingRouter.post(
   '/invoices/:id/pay',
-  requireRole('Business Owner', 'Super Admin'),
+  requireRole('Business Owner', 'Super Admin', 'Customer'),
   validate({ params: idParamSchema }),
   asyncHandler(async (req, res) => {
     ok(res, markInvoicePaid(getStore(), req.params.id, actorFrom(req)));
