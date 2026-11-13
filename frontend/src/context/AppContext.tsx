@@ -387,9 +387,23 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       try {
         const subscription = await api.subscription.change(plan, billingCycle);
         applySubscription(subscription);
-        const [plans, invoice] = await Promise.all([api.plans.list(), api.billing.current()]);
+        const [plans, invoice, notificationsPage] = await Promise.all([
+          api.plans.list(),
+          api.billing.current(),
+          api.alerts.notifications({ page: 1, pageSize: 100 }),
+        ]);
         setPlansList(plans);
         setCurrentInvoice(invoice);
+        setNotifications(notificationsPage.items);
+
+        // Update audit logs if admin endpoint is available
+        try {
+          const auditPage = await api.admin.auditLogs({ page: 1, pageSize: 100 });
+          setAuditLogs(auditPage.items);
+        } catch {
+          // Non-admin roles might not have direct audit route access
+        }
+
         showToast(`Plan successfully changed to ${plan}!`, 'success');
       } catch (error) {
         fail(error);

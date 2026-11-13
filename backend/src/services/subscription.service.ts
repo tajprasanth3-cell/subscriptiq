@@ -1,6 +1,7 @@
 import type { Store } from '../store/store';
 import type { BillingCycle, Subscription, SubscriptionStatus } from '../types';
 import { ApiError } from '../utils/ApiError';
+import { createId, relativeTime } from '../utils/id';
 import { recordAudit, type AuditActor } from './audit.service';
 import { getPlan } from './plan.service';
 
@@ -45,6 +46,16 @@ export function changePlan(
   syncCurrentInvoiceToPlan(store, plan.name);
 
   recordAudit(store, actor, `Changed subscription tier to ${plan.name}`);
+
+  // Push renewal notification to user notification inbox
+  store.data.notifications.unshift({
+    id: createId('notif'),
+    type: 'Renewal',
+    message: `Subscription plan upgraded to ${plan.name} (${subscription.billingCycle} billing)`,
+    timestamp: relativeTime(new Date()),
+    unread: true,
+  });
+
   store.persist();
   return subscription;
 }

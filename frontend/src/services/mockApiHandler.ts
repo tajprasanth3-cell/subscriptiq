@@ -187,12 +187,64 @@ export async function mockApiHandler<T>(path: string, options: RequestInit = {})
   }
 
   if (pathname === '/subscription/change' && method === 'POST') {
+    const oldPlan = subscriptionState.plan;
+    const targetPlanName = body.plan;
     subscriptionState = {
       ...subscriptionState,
-      plan: body.plan,
+      plan: targetPlanName,
       billingCycle: body.billingCycle || subscriptionState.billingCycle,
       status: 'active',
     };
+
+    // 1. Update plans isCurrent flag
+    plansState = plansState.map((p) => ({
+      ...p,
+      isCurrent: p.name === targetPlanName,
+    }));
+
+    // 2. Recalculate current invoice recurring fee according to selected plan
+    const selectedPlan = plansState.find((p) => p.name === targetPlanName);
+    if (selectedPlan) {
+      const overage = currentInvoiceState.lineItems
+        .filter((li) => li.id !== 'li_1')
+        .reduce((sum, li) => sum + li.amount, 0);
+
+      currentInvoiceState = {
+        ...currentInvoiceState,
+        total: selectedPlan.price + overage,
+        lineItems: [
+          {
+            id: 'li_1',
+            lineItem: 'Recurring fee',
+            sourceUsage: `Plan (${selectedPlan.name})`,
+            rate: 'Flat',
+            amount: selectedPlan.price,
+          },
+          ...currentInvoiceState.lineItems.filter((li) => li.id !== 'li_1'),
+        ],
+      };
+    }
+
+    // 3. Add persistent notification to the in-app notification center
+    const planNotif: AlertNotification = {
+      id: `notif_${Date.now()}`,
+      type: 'Renewal',
+      message: `Subscription successfully switched to ${targetPlanName} (${subscriptionState.billingCycle} billing)`,
+      timestamp: 'Just now',
+      unread: true,
+    };
+    notificationsState = [planNotif, ...notificationsState];
+
+    // 4. Record tamper-evident audit log
+    const planAudit: AuditLog = {
+      id: `audit_${Date.now()}`,
+      who: currentAuthUser?.name || 'Business Owner',
+      role: currentAuthUser?.role || 'Business Owner',
+      change: `Upgraded subscription from ${oldPlan} to ${targetPlanName}`,
+      timestamp: 'Just now',
+    };
+    auditLogsState = [planAudit, ...auditLogsState];
+
     return subscriptionState as T;
   }
 
