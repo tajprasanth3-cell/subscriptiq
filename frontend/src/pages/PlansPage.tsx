@@ -25,6 +25,8 @@ import {
   ArrowRight,
   Lock,
   Receipt,
+  Zap,
+  Activity,
 } from 'lucide-react';
 import clsx from 'clsx';
 import { formatCurrency } from '../utils/formatters';
@@ -873,6 +875,31 @@ export const PlansPage = () => {
                   </div>
                 </div>
 
+                {/* Real-time System Lifecycle State */}
+                <div className="p-4 rounded-2xl bg-slate-100/70 border border-slate-200 space-y-2.5 text-xs">
+                  <div className="font-bold text-slate-800 uppercase tracking-wider text-[11px]">
+                    System State Reconciled:
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div className="flex items-center gap-2 text-slate-700 bg-white p-2 rounded-xl border border-slate-100">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span><strong>Quotas:</strong> Upgraded & active</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-slate-700 bg-white p-2 rounded-xl border border-slate-100">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span><strong>Invoice:</strong> Marked as PAID</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-slate-700 bg-white p-2 rounded-xl border border-slate-100">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span><strong>Ledger:</strong> Tamper-evident audit logged</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-slate-700 bg-white p-2 rounded-xl border border-slate-100">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span><strong>Notifications:</strong> Feed updated</span>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Notification Feed Confirmation Alert */}
                 <div className="p-3.5 rounded-2xl bg-indigo-50 border border-indigo-200/80 flex items-start gap-3 text-xs text-indigo-900">
                   <Bell className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" />
@@ -887,44 +914,88 @@ export const PlansPage = () => {
                 {/* Next Steps & Workflow Buttons */}
                 <div className="space-y-3 pt-2 border-t border-slate-100">
                   <div className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                    What would you like to do next?
+                    Choose Your Next Flow:
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                    <Button
-                      variant="outline"
-                      fullWidth
-                      icon={<Download className="w-3.5 h-3.5 text-indigo-600" />}
-                      onClick={() => {
-                        downloadInvoicePDF(currentInvoice.id);
-                        setIsCheckoutModalOpen(false);
-                      }}
-                    >
-                      Download Invoice PDF
-                    </Button>
-
-                    <Button
-                      variant="outline"
-                      fullWidth
-                      icon={<Bell className="w-3.5 h-3.5 text-amber-600" />}
-                      onClick={() => {
-                        setIsCheckoutModalOpen(false);
-                        setCurrentTab('notifications');
-                      }}
-                    >
-                      View Notifications
-                    </Button>
-
-                    <Button
-                      variant="primary"
-                      fullWidth
-                      icon={<ArrowRight className="w-3.5 h-3.5" />}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {/* Flow 1: Go to Dashboard */}
+                    <button
                       onClick={() => {
                         setIsCheckoutModalOpen(false);
                         setCurrentTab('dashboard');
                       }}
+                      className="p-3.5 rounded-2xl border-2 border-indigo-600 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center justify-between transition-all shadow-md shadow-indigo-600/20 cursor-pointer"
                     >
-                      Go to Dashboard
-                    </Button>
+                      <div className="flex items-center gap-2.5 text-left">
+                        <Activity className="w-4 h-4 shrink-0 text-white" />
+                        <div>
+                          <div>Go to Overview Dashboard</div>
+                          <span className="text-[10px] font-normal text-indigo-100">
+                            See updated quotas and KPI metrics
+                          </span>
+                        </div>
+                      </div>
+                      <ArrowRight className="w-4 h-4 text-white shrink-0 ml-2" />
+                    </button>
+
+                    {/* Flow 2: Download Tax Invoice PDF */}
+                    <button
+                      onClick={() => {
+                        downloadInvoicePDF(currentInvoice.id);
+                        setIsCheckoutModalOpen(false);
+                      }}
+                      className="p-3.5 rounded-2xl border border-slate-200 hover:border-slate-300 bg-white text-slate-800 font-bold text-xs flex items-center justify-between transition-all cursor-pointer shadow-xs"
+                    >
+                      <div className="flex items-center gap-2.5 text-left">
+                        <Download className="w-4 h-4 shrink-0 text-indigo-600" />
+                        <div>
+                          <div>Download Tax Invoice PDF</div>
+                          <span className="text-[10px] font-normal text-slate-500">
+                            Printable receipt with GSTIN breakdown
+                          </span>
+                        </div>
+                      </div>
+                      <ArrowRight className="w-4 h-4 text-slate-400 shrink-0 ml-2" />
+                    </button>
+
+                    {/* Flow 3: Test API Ingestion */}
+                    <button
+                      onClick={() => {
+                        setIsCheckoutModalOpen(false);
+                        setCurrentTab('usage');
+                      }}
+                      className="p-3.5 rounded-2xl border border-slate-200 hover:border-slate-300 bg-white text-slate-800 font-bold text-xs flex items-center justify-between transition-all cursor-pointer shadow-xs"
+                    >
+                      <div className="flex items-center gap-2.5 text-left">
+                        <Zap className="w-4 h-4 shrink-0 text-amber-500" />
+                        <div>
+                          <div>Simulate API Events</div>
+                          <span className="text-[10px] font-normal text-slate-500">
+                            Send test requests on the new quota
+                          </span>
+                        </div>
+                      </div>
+                      <ArrowRight className="w-4 h-4 text-slate-400 shrink-0 ml-2" />
+                    </button>
+
+                    {/* Flow 4: Notification Center */}
+                    <button
+                      onClick={() => {
+                        setIsCheckoutModalOpen(false);
+                        setCurrentTab('notifications');
+                      }}
+                      className="p-3.5 rounded-2xl border border-slate-200 hover:border-slate-300 bg-white text-slate-800 font-bold text-xs flex items-center justify-between transition-all cursor-pointer shadow-xs"
+                    >
+                      <div className="flex items-center gap-2.5 text-left">
+                        <Bell className="w-4 h-4 shrink-0 text-indigo-600" />
+                        <div>
+                          <div>Notification Center</div>
+                          <span className="text-[10px] font-normal text-slate-500">
+                            Review logged alert & audit history
+                          </span>
+                        </div>
+                      </div>
+                      <ArrowRight className="w-4 h-4 text-slate-400 shrink-0 ml-2" />
+                    </button>
                   </div>
                 </div>
               </div>
