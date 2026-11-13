@@ -1,5 +1,13 @@
+import dns from 'node:dns';
 import mongoose from 'mongoose';
 import { env } from './env';
+
+// Ensure reliable SRV resolution on Windows
+try {
+  dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
+} catch {
+  // Ignore if custom DNS cannot be set
+}
 
 export async function connectDatabase(): Promise<boolean> {
   if (!env.mongoUri) {
