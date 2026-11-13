@@ -8,9 +8,9 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
   const { selectedInvoiceForModal, setSelectedInvoiceForModal } = useApp();
 
   return (
-    <div className="app-shell min-h-screen bg-slate-50 flex text-slate-800 font-sans antialiased w-full max-w-full overflow-x-hidden">
+    <div className="app-shell h-screen max-h-screen overflow-hidden bg-slate-50 flex text-slate-800 font-sans antialiased w-full max-w-full">
       <Sidebar />
-      <main className="flex-1 flex flex-col min-w-0 w-full max-w-full overflow-x-hidden overflow-y-auto">
+      <main className="flex-1 h-screen max-h-screen overflow-y-auto overflow-x-hidden min-w-0 w-full flex flex-col">
         {children}
       </main>
 

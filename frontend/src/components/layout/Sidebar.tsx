@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import {
   LayoutGrid,
   Layers,
@@ -11,6 +12,7 @@ import {
   X,
   Gauge,
   History,
+  LogOut,
 } from 'lucide-react';
 import clsx from 'clsx';
 import { useApp } from '../../context/AppContext';
@@ -26,7 +28,26 @@ export const Sidebar = () => {
     unreadCount,
     isMobileMenuOpen,
     setIsMobileMenuOpen,
+    logout,
   } = useApp();
+
+  // Lock background scrolling and allow Escape to close the mobile drawer.
+  useEffect(() => {
+    if (!isMobileMenuOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setIsMobileMenuOpen(false);
+    };
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isMobileMenuOpen, setIsMobileMenuOpen]);
 
   // Role-specific navigation items matching Slides 6, 7 & 9 in PDF
   const getNavItems = () => {
@@ -69,17 +90,16 @@ export const Sidebar = () => {
       { id: 'usage' as NavTabId, label: 'Usage & Metering', icon: Activity },
       { id: 'notifications' as NavTabId, label: 'Usage Limits & Alerts', icon: Bell, badge: unreadCount > 0 ? unreadCount : undefined },
       { id: 'billing' as NavTabId, label: 'Billing & Invoices', icon: Receipt },
-      { id: 'admin' as NavTabId, label: 'Admin Console', icon: ShieldCheck },
     ];
   };
 
   const navItems = getNavItems();
 
   const renderContent = (isMobile = false) => (
-    <div className="flex flex-col justify-between h-full select-none">
-      <div className="flex flex-col">
+    <div className="flex flex-col h-full min-h-full justify-between select-none bg-white">
+      <div className="flex flex-col flex-1 min-h-0">
         {/* Brand Header */}
-        <div className="h-20 flex items-center justify-between px-6 border-b border-slate-100">
+        <div className="h-20 shrink-0 flex items-center justify-between px-6 border-b border-slate-100">
           <div
             onClick={() => {
               setCurrentTab(role === 'Super Admin' ? 'admin' : 'dashboard');
@@ -122,7 +142,7 @@ export const Sidebar = () => {
         </div>
 
         {/* Navigation Links */}
-        <nav className="p-4 space-y-1">
+        <nav className="flex-1 min-h-0 overflow-y-auto p-4 space-y-1">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = currentTab === item.id;
@@ -163,27 +183,38 @@ export const Sidebar = () => {
       </div>
 
       {/* Tenant / Organization Footer Card */}
-      <div className="p-4 border-t border-slate-100">
+      <div className="p-4 border-t border-slate-100 shrink-0 mt-auto bg-white space-y-2">
         <div
           onClick={toggleRole}
-          className="p-3.5 bg-slate-50 hover:bg-slate-100/80 rounded-2xl border border-slate-200/70 transition-all cursor-pointer group"
+          className="p-3 bg-slate-50 hover:bg-slate-100/80 rounded-2xl border border-slate-200/70 transition-all cursor-pointer group"
           title="Click to toggle between roles"
         >
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-600 group-hover:text-indigo-600 shrink-0">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-8 h-8 rounded-xl bg-white border border-slate-200 shadow-xs flex items-center justify-center text-slate-600 group-hover:text-indigo-600 shrink-0">
                 <Building2 className="w-4 h-4" />
               </div>
-              <div className="min-w-0">
-                <p className="font-semibold text-xs text-slate-900 leading-tight truncate">
-                  {organizationName}
+              <div className="min-w-0 flex-1">
+                <p className="font-bold text-xs text-slate-900 leading-tight truncate">
+                  {organizationName || 'TechCorp'}
                 </p>
-                <p className="text-[11px] text-slate-500 font-medium">Role: {role}</p>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                  <p className="text-[11px] text-slate-500 font-medium truncate">Role: {role}</p>
+                </div>
               </div>
             </div>
-            <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-slate-600 group-hover:translate-x-0.5 transition-all shrink-0" />
+            <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-slate-600 group-hover:translate-x-0.5 transition-all shrink-0 ml-1" />
           </div>
         </div>
+
+        <button
+          onClick={logout}
+          className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-semibold text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+        >
+          <LogOut className="w-3.5 h-3.5" />
+          <span>Sign Out</span>
+        </button>
       </div>
     </div>
   );
@@ -191,7 +222,7 @@ export const Sidebar = () => {
   return (
     <>
       {/* 1. Desktop Sidebar */}
-      <aside className="hidden lg:flex w-64 bg-white border-r border-slate-200/90 flex-col shrink-0 h-screen sticky top-0 z-20">
+      <aside className="hidden lg:flex w-64 bg-white border-r border-slate-200/90 flex-col shrink-0 h-screen max-h-screen sticky top-0 z-20 overflow-hidden">
         {renderContent(false)}
       </aside>
 
@@ -202,7 +233,7 @@ export const Sidebar = () => {
             className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
             onClick={() => setIsMobileMenuOpen(false)}
           />
-          <aside className="relative w-72 max-w-[85vw] bg-white h-full flex flex-col shadow-2xl z-10 animate-in slide-in-from-left duration-200 overflow-y-auto">
+          <aside className="relative w-72 max-w-[85vw] bg-white h-dvh max-h-dvh flex flex-col shadow-2xl z-10 animate-in slide-in-from-left duration-200 overflow-hidden">
             {renderContent(true)}
           </aside>
         </div>
