@@ -14,14 +14,10 @@ import {
 } from 'lucide-react';
 import { Button } from '../components/common/Button';
 import { useApp } from '../context/AppContext';
-import type { Role } from '../types';
 import clsx from 'clsx';
 
 export const LoginPage = () => {
   const { login, register, resetPassword } = useApp();
-
-  // Active portal: 'Business Owner'
-  const [selectedPortal] = useState<Role>('Business Owner');
 
   // Form credentials
   const [email, setEmail] = useState('');
@@ -57,7 +53,7 @@ export const LoginPage = () => {
       return;
     }
     setIsSubmitting(true);
-    const ok = await login(email.trim(), password.trim(), selectedPortal);
+    const ok = await login(email.trim(), password.trim());
     setIsSubmitting(false);
     if (!ok) {
       setFormError(
@@ -198,7 +194,7 @@ export const LoginPage = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
-                {selectedPortal === 'Customer' ? 'Customer email / username' : 'Work email / username'}
+                Email / username
               </label>
               <input
                 type="text"
@@ -283,35 +279,30 @@ export const LoginPage = () => {
 
           {/* Registration footer */}
           <div className="mt-4 text-center">
-            {selectedPortal === 'Customer' ? (
-              <p className="text-xs sm:text-sm text-slate-600">
-                New customer?{' '}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setRegRole('Customer');
-                    setShowRegisterModal(true);
-                  }}
-                  className="font-semibold text-indigo-600 hover:text-indigo-700 hover:underline cursor-pointer"
-                >
-                  Create customer account
-                </button>
-              </p>
-            ) : (
-              <p className="text-xs sm:text-sm text-slate-600">
-                New business?{' '}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setRegRole('Business Owner');
-                    setShowRegisterModal(true);
-                  }}
-                  className="font-semibold text-indigo-600 hover:text-indigo-700 hover:underline cursor-pointer"
-                >
-                  Register organization
-                </button>
-              </p>
-            )}
+            <p className="text-xs sm:text-sm text-slate-600">
+              New here?{' '}
+              <button
+                type="button"
+                onClick={() => {
+                  setRegRole('Business Owner');
+                  setShowRegisterModal(true);
+                }}
+                className="font-semibold text-indigo-600 hover:text-indigo-700 hover:underline cursor-pointer"
+              >
+                Register organization
+              </button>{' '}
+              or{' '}
+              <button
+                type="button"
+                onClick={() => {
+                  setRegRole('Customer');
+                  setShowRegisterModal(true);
+                }}
+                className="font-semibold text-indigo-600 hover:text-indigo-700 hover:underline cursor-pointer"
+              >
+                create a customer account
+              </button>
+            </p>
           </div>
         </div>
 
@@ -361,17 +352,13 @@ export const LoginPage = () => {
 
           <div className="mt-10 p-5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm">
             <p className="text-xs text-indigo-200 font-medium uppercase tracking-wider mb-1">
-              Active Portal Selection
+              Unified Access
             </p>
             <p className="text-sm font-bold text-white">
-              {selectedPortal === 'Super Admin'
-                ? 'Platform Infrastructure Fleet (All 248 Orgs)'
-                : selectedPortal === 'Customer'
-                ? 'TechCorp End Consumer View (Self-Service)'
-                : 'Acme Corp Production Tenant (Professional Tier)'}
+              One sign-in for admins, business owners and customers
             </p>
             <p className="text-xs text-slate-400 mt-1">
-              Auto-reconciles usage events against customer quotas in under 12ms.
+              Your role is detected automatically from your account.
             </p>
           </div>
         </div>

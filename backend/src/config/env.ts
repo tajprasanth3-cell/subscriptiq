@@ -33,7 +33,9 @@ export const env = {
     secret: process.env.JWT_SECRET ?? 'change-me-in-production-supersecret',
     expiresIn: process.env.JWT_EXPIRES_IN ?? '7d',
   },
-  dataDir: path.resolve(process.cwd(), process.env.DATA_DIR ?? 'data'),
+  dataDir: process.env.VERCEL
+    ? path.join('/tmp', 'data')
+    : path.resolve(process.cwd(), process.env.DATA_DIR ?? 'data'),
   dataFile: process.env.DATA_FILE ?? 'db.json',
   mongoUri: process.env.MONGODB_URI ?? '',
 };

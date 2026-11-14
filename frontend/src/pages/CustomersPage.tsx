@@ -5,7 +5,8 @@ import { ProgressBar } from '../components/common/ProgressBar';
 import { Header } from '../components/layout/Header';
 import { useApp } from '../context/AppContext';
 import type { Customer, PlanTier } from '../types';
-import { UserPlus, X } from 'lucide-react';
+import { UserPlus, X, ChevronDown } from 'lucide-react';
+import clsx from 'clsx';
 
 export const CustomersPage = () => {
   const { customers, addCustomer, updateCustomerStatus } = useApp();
@@ -103,6 +104,13 @@ export const CustomersPage = () => {
                       ? 'indigo'
                       : 'emerald';
 
+                    const statusStyles: Record<Customer['status'], string> = {
+                      Active: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                      'Near limit': 'bg-amber-50 text-amber-700 border-amber-200',
+                      Suspended: 'bg-rose-50 text-rose-700 border-rose-200',
+                      Pending: 'bg-slate-50 text-slate-600 border-slate-200',
+                    };
+
                     return (
                     <tr key={cust.id} className="hover:bg-slate-50/80 transition-colors">
                       <td className="py-4 px-6">
@@ -113,19 +121,25 @@ export const CustomersPage = () => {
                         <span className="font-semibold text-slate-800">{cust.plan}</span>
                       </td>
                       <td className="py-4 px-6">
-                        <select
-                          value={cust.status}
-                          onChange={(e) =>
-                            updateCustomerStatus(cust.id, e.target.value as Customer['status'])
-                          }
-                          className="px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600"
-                          title="Update customer status"
-                        >
-                          <option value="Active">Active</option>
-                          <option value="Near limit">Near limit</option>
-                          <option value="Suspended">Suspended</option>
-                          <option value="Pending">Pending</option>
-                        </select>
+                        <div className="relative inline-block">
+                          <select
+                            value={cust.status}
+                            onChange={(e) =>
+                              updateCustomerStatus(cust.id, e.target.value as Customer['status'])
+                            }
+                            className={clsx(
+                              'appearance-none pl-3 pr-8 py-1.5 border rounded-full text-xs font-semibold cursor-pointer transition-colors focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20',
+                              statusStyles[cust.status]
+                            )}
+                            title="Update customer status"
+                          >
+                            <option value="Active">Active</option>
+                            <option value="Near limit">Near limit</option>
+                            <option value="Suspended">Suspended</option>
+                            <option value="Pending">Pending</option>
+                          </select>
+                          <ChevronDown className="w-3.5 h-3.5 pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500" />
+                        </div>
                       </td>
                       <td className="py-4 px-6 w-56">
                         <div className="space-y-1.5">

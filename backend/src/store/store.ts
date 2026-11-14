@@ -77,8 +77,12 @@ export class Store {
   }
 
   private writeToDisk(state: DatabaseState): void {
-    fs.mkdirSync(env.dataDir, { recursive: true });
-    fs.writeFileSync(dataFilePath, JSON.stringify(state, null, 2), 'utf-8');
+    try {
+      fs.mkdirSync(env.dataDir, { recursive: true });
+      fs.writeFileSync(dataFilePath, JSON.stringify(state, null, 2), 'utf-8');
+    } catch {
+      // In serverless / read-only filesystem environments, retain in-memory state
+    }
   }
 
   /**
