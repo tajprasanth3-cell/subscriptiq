@@ -12,6 +12,7 @@ healthRouter.get('/', (_req, res) => {
     uptimeSeconds: Math.round(process.uptime()),
     timestamp: new Date().toISOString(),
     store: {
+      backend: store.backend(),
       path: storePath(),
       plans: store.data.plans.length,
       customers: store.data.customers.length,

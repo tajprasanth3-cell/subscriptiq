@@ -61,9 +61,9 @@ const ALIASES: Record<string, string> = {
 };
 
 const DEMO_FALLBACK_PASSWORDS: Record<string, string[]> = {
-  'owner@acme.com': ['password123', 'password', 'admin', 'pFf2EP9J0CW5s33v'],
-  'admin@subscriptiq.platform': ['adminpass', 'admin', 'password123', 'pFf2EP9J0CW5s33v'],
-  'customer@techcorp.io': ['custpass', 'customer', 'password', 'password123', 'pFf2EP9J0CW5s33v'],
+  'owner@acme.com': ['password123', 'password', 'admin'],
+  'admin@subscriptiq.platform': ['adminpass', 'admin', 'password123'],
+  'customer@techcorp.io': ['custpass', 'customer', 'password', 'password123'],
 };
 
 export function login(store: Store, input: LoginInput): AuthResult {

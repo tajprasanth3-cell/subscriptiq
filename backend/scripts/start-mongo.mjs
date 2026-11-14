@@ -30,6 +30,8 @@ console.log(`  binary : ${bin}`);
 console.log(`  dbpath : ${dbPath}`);
 console.log(`  log    : ${logPath}`);
 
+const detach = process.argv.includes('--detach');
+
 const child = spawn(
   bin,
   [
@@ -43,8 +45,14 @@ const child = spawn(
     logPath,
     '--logappend',
   ],
-  { stdio: 'inherit' }
+  { stdio: detach ? 'ignore' : 'inherit', detached: detach }
 );
+
+if (detach) {
+  child.unref();
+  console.log(`Started detached (pid ${child.pid}). Log: ${logPath}`);
+  process.exit(0);
+}
 
 child.on('exit', (code) => process.exit(code ?? 0));
 

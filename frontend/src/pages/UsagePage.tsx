@@ -10,7 +10,7 @@ import clsx from 'clsx';
 type TabType = 'all' | 'duplicate' | 'rejected';
 
 export const UsagePage = () => {
-  const { events, simulateIngestion, clearEvents, setCurrentTab, role, meters, organizationName } = useApp();
+  const { events, simulateIngestion, clearEvents, setCurrentTab, role, organizationName } = useApp();
   const [activeTab, setActiveTab] = useState<TabType>('all');
   const [searchQuery, setSearchQuery] = useState('');
 

@@ -4,7 +4,6 @@ import {
   EyeOff,
   CheckCircle2,
   Building,
-  ShieldCheck,
   User,
   X,
   ArrowRight,
@@ -19,10 +18,10 @@ import type { Role } from '../types';
 import clsx from 'clsx';
 
 export const LoginPage = () => {
-  const { login, register, resetPassword, setRole } = useApp();
+  const { login, register, resetPassword } = useApp();
 
-  // Active portal tab: 'Business Owner' | 'Super Admin' | 'Customer'
-  const [selectedPortal, setSelectedPortal] = useState<Role>('Business Owner');
+  // Active portal: 'Business Owner'
+  const [selectedPortal] = useState<Role>('Business Owner');
 
   // Form credentials
   const [email, setEmail] = useState('');
@@ -48,13 +47,6 @@ export const LoginPage = () => {
   const [regEmail, setRegEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
   const [regError, setRegError] = useState('');
-
-  // Handle portal switch
-  const handleSelectPortal = (portal: Role) => {
-    setSelectedPortal(portal);
-    setRole(portal);
-    setFormError('');
-  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -154,11 +146,6 @@ export const LoginPage = () => {
             </div>
             <span className="font-bold text-2xl text-slate-900 tracking-tight">SubscriptIQ</span>
           </div>
-
-          <span className="text-xs font-bold text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-full border border-indigo-100 flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span>{selectedPortal}</span>
-          </span>
         </div>
 
         {/* Form Body */}
@@ -169,70 +156,6 @@ export const LoginPage = () => {
           <p className="text-xs sm:text-sm text-slate-500 mt-1 mb-4">
             Sign in to your account to access your workspace dashboard.
           </p>
-
-          {/* 3 Dedicated Role Portals Switcher Tabs */}
-          <div className="mb-4 p-1 sm:p-1.5 bg-slate-100 rounded-2xl flex items-center gap-1 text-xs font-semibold">
-            <button
-              type="button"
-              onClick={() => handleSelectPortal('Business Owner')}
-              className={clsx(
-                'flex-1 py-2 sm:py-2.5 px-1.5 sm:px-2 rounded-xl transition-all flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer min-w-0 text-[11px] sm:text-xs',
-                selectedPortal === 'Business Owner'
-                  ? 'bg-white text-indigo-700 shadow-xs font-bold'
-                  : 'text-slate-500 hover:text-slate-800'
-              )}
-            >
-              <Building className="w-3.5 h-3.5 shrink-0" />
-              <span className="truncate">Owner</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleSelectPortal('Super Admin')}
-              className={clsx(
-                'flex-1 py-2 sm:py-2.5 px-1.5 sm:px-2 rounded-xl transition-all flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer min-w-0 text-[11px] sm:text-xs',
-                selectedPortal === 'Super Admin'
-                  ? 'bg-white text-indigo-700 shadow-xs font-bold'
-                  : 'text-slate-500 hover:text-slate-800'
-              )}
-            >
-              <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
-              <span className="truncate">Admin</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleSelectPortal('Customer')}
-              className={clsx(
-                'flex-1 py-2 sm:py-2.5 px-1.5 sm:px-2 rounded-xl transition-all flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer min-w-0 text-[11px] sm:text-xs',
-                selectedPortal === 'Customer'
-                  ? 'bg-white text-indigo-700 shadow-xs font-bold'
-                  : 'text-slate-500 hover:text-slate-800'
-              )}
-            >
-              <User className="w-3.5 h-3.5 shrink-0" />
-              <span className="truncate">Customer</span>
-            </button>
-          </div>
-
-          {/* Portal Description Card */}
-          <div className="mb-4 p-3 rounded-xl bg-slate-50 border border-slate-200/80 text-xs">
-            {selectedPortal === 'Business Owner' && (
-              <p className="text-slate-600">
-                <strong>Business Owner Portal</strong>: Full control over plans, customer quotas, idempotent event ingestion, and billing statements.
-              </p>
-            )}
-            {selectedPortal === 'Super Admin' && (
-              <p className="text-slate-600">
-                <strong>Platform Admin Console</strong>: Oversee organizations, platform revenue, global plan catalog, and system audit trail.
-              </p>
-            )}
-            {selectedPortal === 'Customer' && (
-              <p className="text-slate-600">
-                <strong>Customer Self-Service Portal</strong>: Track personal API and storage usage gauges, current period bill, and download invoices.
-              </p>
-            )}
-          </div>
 
           {/* Inline Error Alert with Recovery Actions */}
           {formError && (
@@ -341,7 +264,7 @@ export const LoginPage = () => {
                 </span>
               ) : (
                 <span className="flex items-center justify-center gap-2">
-                  <span>Sign in to {selectedPortal}</span>
+                  <span>Sign in</span>
                   <ArrowRight className="w-4 h-4 ml-1" />
                 </span>
               )}
