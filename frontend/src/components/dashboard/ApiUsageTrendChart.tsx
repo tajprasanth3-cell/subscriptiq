@@ -67,8 +67,8 @@ export const ApiUsageTrendChart = () => {
         )}
       </div>
 
-      <div className="w-full overflow-hidden">
-        <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-44 overflow-hidden">
+      <div className="w-full">
+        <svg viewBox={`0 0 ${width} ${height}`} className="block w-full h-auto">
         {/* Grid lines */}
         {[0.25, 0.5, 0.75, 1].map((r, idx) => {
           const y = height - paddingY - r * (height - 2 * paddingY);

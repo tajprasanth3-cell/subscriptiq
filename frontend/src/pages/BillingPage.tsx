@@ -34,7 +34,8 @@ export const BillingPage = () => {
     return billingHistory.filter(
       (inv) =>
         inv.invoiceNumber.toLowerCase().includes(search) ||
-        (inv.customer && inv.customer.toLowerCase().includes(search))
+        (inv.customer && inv.customer.toLowerCase().includes(search)) ||
+        (inv.customerId && inv.customerId.toLowerCase().includes(search))
     );
   }, [billingHistory, searchQuery]);
 
@@ -248,8 +249,11 @@ export const BillingPage = () => {
                       <td className="py-4 px-6 font-mono text-xs font-semibold text-slate-900 whitespace-nowrap">
                         {hist.invoiceNumber}
                       </td>
-                      <td className="py-4 px-6 font-semibold text-slate-800">
-                        {hist.customer || 'Acme Corp'}
+                      <td className="py-4 px-6">
+                        <div className="font-semibold text-slate-900">{hist.customer || 'Acme Corp'}</div>
+                        <div className="text-[11px] font-mono text-slate-400">
+                          ID: {hist.customerId || (hist.customer === 'TechCorp' ? 'cust_4' : hist.customer === 'Acme Corp' ? 'cust_1' : hist.customer === 'Innovate Ltd' ? 'cust_5' : 'cust_6')}
+                        </div>
                       </td>
                       <td className="py-4 px-6 font-mono font-semibold text-slate-900 whitespace-nowrap">
                         {formatCurrency(hist.total, hist.currency)}

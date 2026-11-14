@@ -208,17 +208,25 @@ export async function mockApiHandler<T>(path: string, options: RequestInit = {})
       const overage = currentInvoiceState.lineItems
         .filter((li) => li.id !== 'li_1')
         .reduce((sum, li) => sum + li.amount, 0);
+      const recurringFee =
+        subscriptionState.billingCycle === 'annual'
+          ? Math.round(selectedPlan.price * 0.8 * 12)
+          : selectedPlan.price;
 
       currentInvoiceState = {
         ...currentInvoiceState,
-        total: selectedPlan.price + overage,
+        status:
+          oldPlan !== targetPlanName && currentInvoiceState.status === 'Paid'
+            ? 'Open'
+            : currentInvoiceState.status,
+        total: recurringFee + overage,
         lineItems: [
           {
             id: 'li_1',
             lineItem: 'Recurring fee',
             sourceUsage: `Plan (${selectedPlan.name})`,
             rate: 'Flat',
-            amount: selectedPlan.price,
+            amount: recurringFee,
           },
           ...currentInvoiceState.lineItems.filter((li) => li.id !== 'li_1'),
         ],

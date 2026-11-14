@@ -34,11 +34,11 @@ function AppContent() {
         </>
       )}
 
-      {currentTab === 'admin' && <AdminPage />}
+      {currentTab === 'admin' && role === 'Super Admin' && <AdminPage />}
       {currentTab === 'plans' && <PlansPage />}
       {currentTab === 'usage' && <UsagePage />}
       {currentTab === 'billing' && <BillingPage />}
-      {currentTab === 'customers' && <CustomersPage />}
+      {currentTab === 'customers' && role !== 'Customer' && <CustomersPage />}
       {currentTab === 'notifications' && <AlertsPage />}
     </AppLayout>
   );

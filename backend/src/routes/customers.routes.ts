@@ -27,6 +27,7 @@ customersRouter.use(authenticate);
 
 customersRouter.get(
   '/',
+  requireRole('Business Owner', 'Super Admin'),
   validate({ query: customersQuerySchema }),
   asyncHandler(async (req, res) => {
     ok(res, listCustomers(getStore(), req.query as unknown as never));
@@ -35,6 +36,7 @@ customersRouter.get(
 
 customersRouter.get(
   '/:id',
+  requireRole('Business Owner', 'Super Admin'),
   validate({ params: idParamSchema }),
   asyncHandler(async (req, res) => {
     ok(res, getCustomer(getStore(), req.params.id));

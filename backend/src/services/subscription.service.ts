@@ -9,7 +9,11 @@ export function getSubscription(store: Store): Subscription {
   return store.data.subscription;
 }
 
-function syncCurrentInvoiceToPlan(store: Store, planName: string): void {
+function syncCurrentInvoiceToPlan(
+  store: Store,
+  planName: string,
+  billingCycle: BillingCycle
+): void {
   const plan = getPlan(store, planName);
   const invoice = store.data.invoices.find((i) => i.id === 'inv_current');
   if (!invoice) return;
@@ -17,15 +21,17 @@ function syncCurrentInvoiceToPlan(store: Store, planName: string): void {
   const overage = invoice.lineItems
     .filter((li) => li.id !== 'li_1')
     .reduce((sum, li) => sum + li.amount, 0);
+  const recurringFee =
+    billingCycle === 'annual' ? Math.round(plan.price * 0.8 * 12) : plan.price;
 
   invoice.lineItems[0] = {
     id: 'li_1',
     lineItem: 'Recurring fee',
     sourceUsage: `Plan (${plan.name})`,
     rate: 'Flat',
-    amount: plan.price,
+    amount: recurringFee,
   };
-  invoice.total = plan.price + overage;
+  invoice.total = recurringFee + overage;
 }
 
 export function changePlan(
@@ -36,6 +42,7 @@ export function changePlan(
 ): Subscription {
   const plan = getPlan(store, planName);
   const subscription = store.data.subscription;
+  const previousPlan = subscription.plan;
   subscription.plan = plan.name;
   subscription.status = 'active';
   if (billingCycle) subscription.billingCycle = billingCycle;
@@ -43,7 +50,14 @@ export function changePlan(
   store.data.plans.forEach((p) => {
     p.isCurrent = p.name === plan.name;
   });
-  syncCurrentInvoiceToPlan(store, plan.name);
+  syncCurrentInvoiceToPlan(store, plan.name, subscription.billingCycle);
+
+  // A plan change creates a fresh amount due; re-open the current invoice if it
+  // had already been settled so the checkout payment can collect the difference.
+  const currentInvoice = store.data.invoices.find((i) => i.id === 'inv_current');
+  if (currentInvoice && previousPlan !== plan.name && currentInvoice.status === 'Paid') {
+    currentInvoice.status = 'Open';
+  }
 
   recordAudit(store, actor, `Changed subscription tier to ${plan.name}`);
 

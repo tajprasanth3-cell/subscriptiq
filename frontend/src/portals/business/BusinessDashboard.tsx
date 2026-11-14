@@ -184,7 +184,7 @@ export const BusinessDashboard = () => {
         </div>
 
         {/* Row 3: API Usage Trend + Recent Alerts & Quick Actions (Slide 7 & Mockup 2) */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 items-start gap-4 sm:gap-6 lg:gap-8">
           {/* API Usage Trend (2 columns on desktop) */}
           <Card className="lg:col-span-2 space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-100 gap-2">

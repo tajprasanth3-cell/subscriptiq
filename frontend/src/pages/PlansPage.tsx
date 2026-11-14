@@ -33,6 +33,7 @@ import { formatCurrency } from '../utils/formatters';
 
 export const PlansPage = () => {
   const {
+    role,
     plansList,
     currentPlan,
     subscriptionStatus,
@@ -81,6 +82,9 @@ export const PlansPage = () => {
   const [newPlanApiLimit, setNewPlanApiLimit] = useState('50,000');
   const [newPlanStorage, setNewPlanStorage] = useState('25 GB');
 
+  const isAdmin = role === 'Super Admin';
+  const canManageSubscription = role !== 'Customer';
+
   const lifecycleSteps = [
     { id: 'plan_selected', label: 'Plan selected', color: 'indigo' },
     { id: 'active', label: 'Active', color: 'emerald' },
@@ -104,22 +108,25 @@ export const PlansPage = () => {
     await new Promise((res) => setTimeout(res, 1200));
 
     try {
-      // 1. Upgrade subscription
-      upgradePlan(selectedPlanForCheckout.name);
+      // 1. Upgrade subscription and wait for confirmation before accepting payment.
+      const planAccepted = await upgradePlan(selectedPlanForCheckout.name);
+      if (!planAccepted) {
+        setCheckoutStep('review');
+        return;
+      }
 
-      // 2. Mark current invoice as paid
-      payInvoice(currentInvoice.id);
-
-      const payableAmount =
-        billingCycle === 'annual'
-          ? Math.round(selectedPlanForCheckout.price * 0.8 * 12)
-          : selectedPlanForCheckout.price;
+      // 2. Settle the current invoice for the newly selected plan.
+      const paidInvoice = await payInvoice(currentInvoice.id);
+      if (!paidInvoice) {
+        setCheckoutStep('review');
+        return;
+      }
 
       setReceiptInfo({
         txnId: `TXN_${Math.floor(10000000 + Math.random() * 90000000)}`,
-        invoiceNumber: currentInvoice.invoiceNumber || 'INV-2026-004',
+        invoiceNumber: paidInvoice.invoiceNumber,
         planName: selectedPlanForCheckout.name,
-        amount: payableAmount,
+        amount: paidInvoice.total,
         billingCycle,
         date: new Date().toLocaleDateString('en-US', {
           year: 'numeric',
@@ -225,16 +232,18 @@ export const PlansPage = () => {
               </button>
             </div>
 
-            {/* Create Plan Button */}
-            <Button
-              variant="primary"
-              size="sm"
-              icon={<Plus className="w-3.5 h-3.5" />}
-              onClick={() => setShowCreateModal(true)}
-            >
-              <span className="hidden sm:inline">Create Plan</span>
-              <span className="sm:hidden">Plan</span>
-            </Button>
+            {/* Create Plan Button — platform catalog is maintained by Super Admin */}
+            {isAdmin && (
+              <Button
+                variant="primary"
+                size="sm"
+                icon={<Plus className="w-3.5 h-3.5" />}
+                onClick={() => setShowCreateModal(true)}
+              >
+                <span className="hidden sm:inline">Create Plan</span>
+                <span className="sm:hidden">Plan</span>
+              </Button>
+            )}
           </div>
         }
       />
@@ -438,7 +447,7 @@ export const PlansPage = () => {
                           >
                             {plan.name === currentPlan ? 'Active' : 'Checkout & Pay'}
                           </Button>
-                          {plansList.length > 1 && plan.name !== currentPlan && (
+                          {isAdmin && plansList.length > 1 && plan.name !== currentPlan && (
                             <button
                               onClick={() => deletePlan(plan.id)}
                               className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-slate-100 cursor-pointer"
@@ -474,9 +483,13 @@ export const PlansPage = () => {
               return (
                 <Fragment key={step.id}>
                   <div
-                    onClick={() => setSubscriptionStatus(step.id as SubscriptionStatus)}
+                    onClick={() =>
+                      canManageSubscription &&
+                      setSubscriptionStatus(step.id as SubscriptionStatus)
+                    }
                     className={clsx(
-                      'px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer',
+                      'px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all',
+                      canManageSubscription ? 'cursor-pointer' : 'cursor-default',
                       isActiveStep
                         ? step.color === 'emerald'
                           ? 'bg-emerald-50 text-emerald-700 border border-emerald-300 ring-2 ring-emerald-500/20'

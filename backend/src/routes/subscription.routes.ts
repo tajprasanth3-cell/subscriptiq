@@ -26,7 +26,7 @@ subscriptionRouter.get(
 
 subscriptionRouter.post(
   '/change',
-  requireRole('Business Owner', 'Super Admin'),
+  requireRole('Business Owner', 'Super Admin', 'Customer'),
   validate({ body: changePlanSchema }),
   asyncHandler(async (req, res) => {
     const subscription = changePlan(
@@ -41,7 +41,7 @@ subscriptionRouter.post(
 
 subscriptionRouter.post(
   '/cancel',
-  requireRole('Business Owner', 'Super Admin'),
+  requireRole('Business Owner', 'Super Admin', 'Customer'),
   asyncHandler(async (req, res) => {
     ok(res, cancelSubscription(getStore(), actorFrom(req)));
   })
@@ -49,7 +49,7 @@ subscriptionRouter.post(
 
 subscriptionRouter.post(
   '/reactivate',
-  requireRole('Business Owner', 'Super Admin'),
+  requireRole('Business Owner', 'Super Admin', 'Customer'),
   asyncHandler(async (req, res) => {
     ok(res, reactivateSubscription(getStore(), actorFrom(req)));
   })

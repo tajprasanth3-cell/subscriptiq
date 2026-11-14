@@ -73,7 +73,7 @@ export const CustomerDashboard = () => {
     {
       icon: Receipt,
       color: 'text-purple-600 bg-purple-50',
-      title: 'Invoice generated: INV-00124 (₹1,499)',
+      title: `Invoice generated: ${currentInvoice.invoiceNumber} (${formatCurrency(currentInvoice.total)})`,
       time: '1 day ago',
       desc: 'Auto-debit scheduled via primary credit card',
     },
@@ -130,7 +130,7 @@ export const CustomerDashboard = () => {
               </div>
 
               <p className="text-xs text-indigo-100 mt-1.5 sm:mt-2">
-                Auto-renews on <strong className="text-white">Apr 30, 2026</strong> &bull; Priority SLA &bull; Verified
+                Auto-renews on <strong className="text-white">{currentInvoice.dueDate || 'Apr 30, 2026'}</strong> &bull; Priority SLA &bull; Verified
               </p>
             </div>
 

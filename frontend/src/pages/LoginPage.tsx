@@ -23,8 +23,8 @@ export const LoginPage = () => {
   const [selectedPortal, setSelectedPortal] = useState<Role>('Business Owner');
 
   // Form credentials
-  const [email, setEmail] = useState('owner@acme.com');
-  const [password, setPassword] = useState('password123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -41,39 +41,6 @@ export const LoginPage = () => {
   const handleSelectPortal = (portal: Role) => {
     setSelectedPortal(portal);
     setRole(portal);
-
-    if (portal === 'Super Admin') {
-      setEmail('admin@subscriptiq.platform');
-      setPassword('adminpass');
-    } else if (portal === 'Customer') {
-      setEmail('customer@techcorp.io');
-      setPassword('custpass');
-    } else {
-      setEmail('owner@acme.com');
-      setPassword('password123');
-    }
-  };
-
-  // Direct 1-click Quick Login
-  const handleQuickLogin = (portal: Role) => {
-    setSelectedPortal(portal);
-    setRole(portal);
-    setIsSubmitting(true);
-    let targetEmail = 'owner@acme.com';
-    let targetPass = 'password123';
-
-    if (portal === 'Super Admin') {
-      targetEmail = 'admin@subscriptiq.platform';
-      targetPass = 'adminpass';
-    } else if (portal === 'Customer') {
-      targetEmail = 'customer@techcorp.io';
-      targetPass = 'custpass';
-    }
-
-    setEmail(targetEmail);
-    setPassword(targetPass);
-    login(targetEmail, targetPass);
-    setTimeout(() => setIsSubmitting(false), 500);
   };
 
   const handleSubmit = (e: FormEvent) => {
@@ -112,9 +79,9 @@ export const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex flex-col md:flex-row bg-white select-none">
+    <div className="h-dvh w-full flex flex-col md:flex-row bg-white select-none overflow-hidden">
       {/* Left Column: Sign-in Form */}
-      <div className="w-full md:w-1/2 flex flex-col justify-between p-5 sm:p-8 md:p-12 lg:p-16 xl:p-20">
+      <div className="w-full md:w-1/2 flex flex-col justify-between h-full min-h-0 overflow-y-auto px-5 py-3 sm:px-8 sm:py-4 md:px-10 md:py-4 lg:px-16 lg:py-5 xl:px-20 xl:py-6">
         {/* Brand Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -144,7 +111,7 @@ export const LoginPage = () => {
         </div>
 
         {/* Form Body */}
-        <div className="max-w-md w-full my-auto py-6">
+        <div className="max-w-md w-full my-auto py-2 sm:py-3">
           <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
             Welcome back
           </h2>
@@ -201,17 +168,17 @@ export const LoginPage = () => {
           <div className="mb-5 p-3 rounded-xl bg-slate-50 border border-slate-200/80 text-xs">
             {selectedPortal === 'Business Owner' && (
               <p className="text-slate-600">
-                <strong>Business Owner Portal (Acme Corp)</strong>: Full control over plans, customer quotas, idempotent event ingestion, and billing statements.
+                <strong>Business Owner Portal</strong>: Full control over plans, customer quotas, idempotent event ingestion, and billing statements.
               </p>
             )}
             {selectedPortal === 'Super Admin' && (
               <p className="text-slate-600">
-                <strong>Platform Admin Console</strong>: Oversee all 248 organizations, platform MRR (₹92,400), global plan catalog, and system audit trail.
+                <strong>Platform Admin Console</strong>: Oversee organizations, platform revenue, global plan catalog, and system audit trail.
               </p>
             )}
             {selectedPortal === 'Customer' && (
               <p className="text-slate-600">
-                <strong>Customer Self-Service Portal</strong>: Track personal API and storage usage gauges, current period bill (₹1,499), and download invoices.
+                <strong>Customer Self-Service Portal</strong>: Track personal API and storage usage gauges, current period bill, and download invoices.
               </p>
             )}
           </div>
@@ -226,7 +193,7 @@ export const LoginPage = () => {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder={selectedPortal === 'Customer' ? 'customer@techcorp.io' : 'you@company.com'}
+                placeholder="you@company.com"
                 className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all shadow-2xs"
               />
             </div>
@@ -293,44 +260,6 @@ export const LoginPage = () => {
             </Button>
           </form>
 
-          {/* 1-Click Quick Demo Login Row */}
-          <div className="mt-5 pt-4 border-t border-slate-100">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2.5 text-center">
-              1-Click Instant Demo Launch
-            </p>
-            <div className="grid grid-cols-3 gap-2 text-xs">
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('Business Owner')}
-                className="p-2 rounded-xl bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-200 text-slate-700 hover:text-indigo-700 font-semibold text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-1"
-                title="Sign in immediately as Business Owner (John Smith / Acme Corp)"
-              >
-                <Building className="w-3.5 h-3.5 text-indigo-600" />
-                <span className="truncate">Owner (Acme)</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('Super Admin')}
-                className="p-2 rounded-xl bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-200 text-slate-700 hover:text-indigo-700 font-semibold text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-1"
-                title="Sign in immediately as Super Admin (Platform fleet)"
-              >
-                <ShieldCheck className="w-3.5 h-3.5 text-indigo-600" />
-                <span className="truncate">Admin (Platform)</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('Customer')}
-                className="p-2 rounded-xl bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-200 text-slate-700 hover:text-indigo-700 font-semibold text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-1"
-                title="Sign in immediately as End Customer (Alex Johnson / TechCorp)"
-              >
-                <User className="w-3.5 h-3.5 text-indigo-600" />
-                <span className="truncate">Customer (TechCorp)</span>
-              </button>
-            </div>
-          </div>
-
           {/* Registration footer */}
           <div className="mt-5 text-center">
             {selectedPortal === 'Customer' ? (
@@ -376,7 +305,7 @@ export const LoginPage = () => {
       </div>
 
       {/* Right Column: Hero Banner */}
-      <div className="w-full md:w-1/2 bg-[#1A183C] text-white p-6 sm:p-10 md:p-12 lg:p-16 xl:p-20 flex flex-col justify-center relative overflow-hidden">
+      <div className="hidden md:flex md:w-1/2 bg-[#1A183C] text-white p-6 sm:p-10 md:p-12 lg:p-16 xl:p-20 flex-col justify-center relative overflow-hidden">
         {/* Background ambient gradient glow */}
         <div className="absolute -top-24 -right-24 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />

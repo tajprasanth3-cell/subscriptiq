@@ -1,5 +1,5 @@
 import type { Store } from '../store/store';
-import type { AuthUser, Organization, User } from '../types';
+import type { AuthUser, Organization, Role, User } from '../types';
 import { ApiError } from '../utils/ApiError';
 import { createId } from '../utils/id';
 import { signToken } from '../utils/jwt';
@@ -16,6 +16,7 @@ export interface RegisterInput {
   email: string;
   password: string;
   name?: string;
+  role?: Role;
 }
 
 export interface AuthResult {
@@ -62,6 +63,7 @@ export function register(store: Store, input: RegisterInput): AuthResult {
   }
 
   const now = new Date().toISOString();
+  const role: Role = input.role === 'Customer' ? 'Customer' : 'Business Owner';
   const organization: Organization = {
     id: createId('org'),
     name: input.organizationName.trim(),
@@ -73,7 +75,7 @@ export function register(store: Store, input: RegisterInput): AuthResult {
     id: createId('user'),
     email,
     name: input.name?.trim() || input.organizationName.trim(),
-    role: 'Business Owner',
+    role,
     organizationId: organization.id,
     passwordHash: hashPassword(input.password),
     createdAt: now,
@@ -92,7 +94,7 @@ export function register(store: Store, input: RegisterInput): AuthResult {
   });
   recordAudit(
     store,
-    { who: `${organization.name} (Business Owner)`, role: 'Business Owner' },
+    { who: `${organization.name} (${role})`, role },
     `Registered new organization: ${organization.name}`
   );
   store.persist();

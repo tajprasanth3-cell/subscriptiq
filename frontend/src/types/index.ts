@@ -66,6 +66,7 @@ export interface Invoice {
   id: string;
   invoiceNumber: string;
   customer?: string;
+  customerId?: string;
   period: string;
   date?: string;
   status: 'Open' | 'Paid' | 'Pending' | 'Overdue';
@@ -92,6 +93,12 @@ export interface AlertNotification {
   message: string;
   timestamp: string;
   unread?: boolean;
+  customerId?: string;
+  customerName?: string;
+  amount?: number;
+  planName?: string;
+  invoiceId?: string;
+  details?: string;
 }
 
 export interface AlertRules {
