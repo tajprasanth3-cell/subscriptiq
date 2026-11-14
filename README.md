@@ -1,5 +1,10 @@
 # SubscriptIQ — Metered Subscription & Usage Ingestion Platform
 
+[![Deploy with Vercel](https://img.shields.io/badge/Live_Demo-Vercel-black?style=for-the-badge&logo=vercel)](https://frontend-eta-murex-51.vercel.app)
+[![GitHub Repository](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github)](https://github.com/tajprasanth3-cell/subscriptiq)
+
+> 🌐 **Live Web Application**: [https://frontend-eta-murex-51.vercel.app](https://frontend-eta-murex-51.vercel.app)
+
 SubscriptIQ is a modern, high-precision SaaS metered subscription management and idempotent usage event tracking platform. It enables multi-tenant organizations to monitor resource usage in real time, enforce plan quotas, bill overages predictably, and manage complete subscription lifecycles.
 
 ---
