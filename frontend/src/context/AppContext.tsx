@@ -62,7 +62,8 @@ interface AppContextType {
   currentUserEmail: string;
   role: Role;
   organizationName: string;
-  login: (email: string, password: string) => void;
+  login: (email: string, password: string) => Promise<boolean>;
+  resetPassword: (email: string, newPassword: string) => Promise<boolean>;
   register: (organizationName: string, email: string, password: string, roleToRegister?: Role) => void;
   logout: () => void;
   toggleRole: () => void;
@@ -317,25 +318,46 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     };
   }, [applyUser, loadWorkspace, fail]);
 
-  const login = (email: string, password: string) => {
-    void (async () => {
+  const login = async (email: string, password: string): Promise<boolean> => {
+    try {
+      const result = await api.auth.login(email, password);
+      setToken(result.token);
+      applyUser(result.user);
+      setIsAuthenticated(true);
+      setCurrentTabState(result.user.role === 'Super Admin' ? 'admin' : 'dashboard');
+      setIsMobileMenuOpen(false);
       try {
-        const result = await api.auth.login(email, password);
-        setToken(result.token);
-        applyUser(result.user);
-        setIsAuthenticated(true);
-        setCurrentTabState(result.user.role === 'Super Admin' ? 'admin' : 'dashboard');
-        setIsMobileMenuOpen(false);
-        try {
-          await loadWorkspace(result.user.role);
-        } catch (error) {
-          fail(error);
-        }
-        showToast(`Welcome back, ${result.user.email}!`, 'success');
+        await loadWorkspace(result.user.role);
       } catch (error) {
         fail(error);
       }
-    })();
+      showToast(`Welcome back, ${result.user.email}!`, 'success');
+      return true;
+    } catch (error) {
+      fail(error);
+      return false;
+    }
+  };
+
+  const resetPassword = async (email: string, newPassword: string): Promise<boolean> => {
+    try {
+      const result = await api.auth.resetPassword(email, newPassword);
+      setToken(result.token);
+      applyUser(result.user);
+      setIsAuthenticated(true);
+      setCurrentTabState(result.user.role === 'Super Admin' ? 'admin' : 'dashboard');
+      setIsMobileMenuOpen(false);
+      try {
+        await loadWorkspace(result.user.role);
+      } catch (error) {
+        fail(error);
+      }
+      showToast(`Password successfully updated! Welcome, ${result.user.email}`, 'success');
+      return true;
+    } catch (error) {
+      fail(error);
+      return false;
+    }
   };
 
   const register = (
@@ -629,6 +651,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         organizationName,
         refreshWorkspace,
         login,
+        resetPassword,
         register,
         logout,
         toggleRole,

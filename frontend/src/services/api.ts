@@ -190,6 +190,12 @@ export const api = {
         auth: false,
         body: JSON.stringify({ organizationName, email, password, role }),
       }),
+    resetPassword: (email: string, newPassword: string) =>
+      request<AuthResult>('/auth/reset-password', {
+        method: 'POST',
+        auth: false,
+        body: JSON.stringify({ email, newPassword }),
+      }),
     me: () => request<{ user: AuthUser }>('/auth/me'),
   },
 

@@ -1,11 +1,11 @@
 import { Router } from 'express';
 import { authenticate } from '../middleware/auth';
 import { validate } from '../middleware/validate';
-import { login, register } from '../services/auth.service';
+import { login, register, resetPassword } from '../services/auth.service';
 import { getStore } from '../store/store';
 import { asyncHandler } from '../utils/asyncHandler';
 import { ok } from '../utils/http';
-import { loginSchema, registerSchema } from '../validation/schemas';
+import { loginSchema, registerSchema, resetPasswordSchema } from '../validation/schemas';
 
 export const authRouter = Router();
 
@@ -14,6 +14,15 @@ authRouter.post(
   validate({ body: loginSchema }),
   asyncHandler(async (req, res) => {
     const result = login(getStore(), req.body);
+    ok(res, result);
+  })
+);
+
+authRouter.post(
+  '/reset-password',
+  validate({ body: resetPasswordSchema }),
+  asyncHandler(async (req, res) => {
+    const result = resetPassword(getStore(), req.body);
     ok(res, result);
   })
 );

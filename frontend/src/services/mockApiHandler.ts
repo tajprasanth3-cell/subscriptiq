@@ -133,6 +133,51 @@ export async function mockApiHandler<T>(path: string, options: RequestInit = {})
     return result as T;
   }
 
+  if (pathname === '/auth/reset-password' && method === 'POST') {
+    const { email } = body;
+    const lowerEmail = (email || '').toLowerCase().trim();
+    let account = DEMO_ACCOUNTS[lowerEmail];
+    if (!account) {
+      if (lowerEmail.includes('admin')) {
+        account = {
+          role: 'Super Admin',
+          name: 'Platform Admin',
+          orgName: 'SubscriptIQ Platform',
+          orgId: 'org_platform',
+        };
+      } else if (lowerEmail.includes('customer')) {
+        account = {
+          role: 'Customer',
+          name: 'Alex Johnson',
+          orgName: 'TechCorp',
+          orgId: 'org_techcorp',
+        };
+      } else {
+        account = {
+          role: 'Business Owner',
+          name: email.split('@')[0] || 'Business Owner',
+          orgName: 'Acme Corp',
+          orgId: 'org_acme',
+        };
+      }
+    }
+
+    currentAuthUser = {
+      id: `user_${Date.now()}`,
+      email: email || 'owner@acme.com',
+      name: account.name,
+      role: account.role,
+      organizationId: account.orgId,
+      organizationName: account.orgName,
+    };
+
+    const result: AuthResult = {
+      token: `mock_jwt_token_${currentAuthUser.role.replace(/\s+/g, '_')}_${Date.now()}`,
+      user: currentAuthUser,
+    };
+    return result as T;
+  }
+
   if (pathname === '/auth/register' && method === 'POST') {
     const { organizationName, email, role } = body;
     const assignedRole: Role = role === 'Customer' ? 'Customer' : 'Business Owner';

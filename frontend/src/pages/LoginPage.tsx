@@ -10,24 +10,55 @@ import {
   ArrowRight,
   Sparkles,
   Loader2,
+  AlertTriangle,
+  KeyRound,
+  RefreshCw,
 } from 'lucide-react';
 import { Button } from '../components/common/Button';
 import { useApp } from '../context/AppContext';
 import type { Role } from '../types';
 import clsx from 'clsx';
 
+const PORTAL_DEMO_CREDENTIALS: Record<Role, { email: string; password: string; name: string }> = {
+  'Business Owner': {
+    email: 'owner@acme.com',
+    password: 'password123',
+    name: 'Business Owner (Acme)',
+  },
+  'Super Admin': {
+    email: 'admin@subscriptiq.platform',
+    password: 'adminpass',
+    name: 'Platform Super Admin',
+  },
+  Customer: {
+    email: 'customer@techcorp.io',
+    password: 'custpass',
+    name: 'Customer Client (TechCorp)',
+  },
+};
+
 export const LoginPage = () => {
-  const { login, register, setRole } = useApp();
+  const { login, register, resetPassword, setRole } = useApp();
 
   // Active portal tab: 'Business Owner' | 'Super Admin' | 'Customer'
   const [selectedPortal, setSelectedPortal] = useState<Role>('Business Owner');
 
-  // Form credentials
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  // Form credentials pre-filled with active portal demo credentials
+  const [email, setEmail] = useState('owner@acme.com');
+  const [password, setPassword] = useState('password123');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState('');
+
+  // Password Reset / Create Password Modal
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showResetPassword, setShowResetPassword] = useState(false);
+  const [resetError, setResetError] = useState('');
+  const [isResetting, setIsResetting] = useState(false);
 
   // Registration modal
   const [showRegisterModal, setShowRegisterModal] = useState(false);
@@ -37,18 +68,76 @@ export const LoginPage = () => {
   const [regPassword, setRegPassword] = useState('');
   const [regError, setRegError] = useState('');
 
-  // Handle portal switch
+  // Handle portal switch: auto-updates credentials for that portal
   const handleSelectPortal = (portal: Role) => {
     setSelectedPortal(portal);
     setRole(portal);
+    setFormError('');
+    const demo = PORTAL_DEMO_CREDENTIALS[portal];
+    setEmail(demo.email);
+    setPassword(demo.password);
   };
 
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    if (!email.trim() || !password.trim()) return;
+  // Instant 1-Click Demo Launch
+  const handleQuickLaunch = async (portal: Role) => {
+    setSelectedPortal(portal);
+    setRole(portal);
+    setFormError('');
+    const creds = PORTAL_DEMO_CREDENTIALS[portal];
+    setEmail(creds.email);
+    setPassword(creds.password);
     setIsSubmitting(true);
-    login(email.trim(), password);
-    setTimeout(() => setIsSubmitting(false), 600);
+    const ok = await login(creds.email, creds.password);
+    setIsSubmitting(false);
+    if (!ok) {
+      setFormError('Failed to sign in. Please verify the backend API is running.');
+    }
+  };
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setFormError('');
+    if (!email.trim() || !password.trim()) {
+      setFormError('Please enter both email/username and password.');
+      return;
+    }
+    setIsSubmitting(true);
+    const ok = await login(email.trim(), password.trim());
+    setIsSubmitting(false);
+    if (!ok) {
+      setFormError(
+        'Invalid email or password. You can click "Auto-fill Demo Credentials" below, or click "Reset / Create Password" to set a new password.'
+      );
+    }
+  };
+
+  const handleResetSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setResetError('');
+    if (!resetEmail.trim()) {
+      setResetError('Please enter your email address or username.');
+      return;
+    }
+    if (newPassword.length < 4) {
+      setResetError('Password must be at least 4 characters long.');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setResetError('Passwords do not match. Please re-enter.');
+      return;
+    }
+
+    setIsResetting(true);
+    const ok = await resetPassword(resetEmail.trim(), newPassword);
+    setIsResetting(false);
+    if (ok) {
+      setShowResetModal(false);
+      setResetEmail('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } else {
+      setResetError('Failed to update password. Please check backend connection.');
+    }
   };
 
   const handleRegisterSubmit = (e: FormEvent) => {
@@ -115,12 +204,51 @@ export const LoginPage = () => {
           <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
             Welcome back
           </h2>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1 mb-5">
-            Select your dedicated role portal to sign in to your dashboard.
+          <p className="text-xs sm:text-sm text-slate-500 mt-1 mb-3">
+            Select your portal or use 1-click launch to sign in instantly.
           </p>
 
+          {/* 1-Click Instant Demo Launch Bar */}
+          <div className="mb-4 p-2.5 rounded-2xl bg-indigo-50/80 border border-indigo-100 shadow-2xs">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-900 flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+                <span>1-Click Instant Demo Launch</span>
+              </span>
+              <span className="text-[10px] text-indigo-600 font-semibold bg-white px-2 py-0.5 rounded-full border border-indigo-100">
+                Zero typing needed
+              </span>
+            </div>
+            <div className="grid grid-cols-3 gap-1.5">
+              <button
+                type="button"
+                onClick={() => handleQuickLaunch('Business Owner')}
+                className="py-1.5 px-2 bg-white hover:bg-indigo-600 hover:text-white text-indigo-900 font-bold text-[11px] rounded-xl border border-indigo-200 transition-all shadow-2xs flex items-center justify-center gap-1 truncate cursor-pointer active:scale-95"
+              >
+                <Building className="w-3 h-3 shrink-0" />
+                <span className="truncate">Owner</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleQuickLaunch('Super Admin')}
+                className="py-1.5 px-2 bg-white hover:bg-indigo-600 hover:text-white text-indigo-900 font-bold text-[11px] rounded-xl border border-indigo-200 transition-all shadow-2xs flex items-center justify-center gap-1 truncate cursor-pointer active:scale-95"
+              >
+                <ShieldCheck className="w-3 h-3 shrink-0" />
+                <span className="truncate">Admin</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleQuickLaunch('Customer')}
+                className="py-1.5 px-2 bg-white hover:bg-indigo-600 hover:text-white text-indigo-900 font-bold text-[11px] rounded-xl border border-indigo-200 transition-all shadow-2xs flex items-center justify-center gap-1 truncate cursor-pointer active:scale-95"
+              >
+                <User className="w-3 h-3 shrink-0" />
+                <span className="truncate">Customer</span>
+              </button>
+            </div>
+          </div>
+
           {/* 3 Dedicated Role Portals Switcher Tabs */}
-          <div className="mb-4 p-1 sm:p-1.5 bg-slate-100 rounded-2xl flex items-center gap-1 text-xs font-semibold">
+          <div className="mb-3 p-1 sm:p-1.5 bg-slate-100 rounded-2xl flex items-center gap-1 text-xs font-semibold">
             <button
               type="button"
               onClick={() => handleSelectPortal('Business Owner')}
@@ -164,35 +292,75 @@ export const LoginPage = () => {
             </button>
           </div>
 
-          {/* Portal Description Card */}
-          <div className="mb-5 p-3 rounded-xl bg-slate-50 border border-slate-200/80 text-xs">
-            {selectedPortal === 'Business Owner' && (
-              <p className="text-slate-600">
-                <strong>Business Owner Portal</strong>: Full control over plans, customer quotas, idempotent event ingestion, and billing statements.
-              </p>
-            )}
-            {selectedPortal === 'Super Admin' && (
-              <p className="text-slate-600">
-                <strong>Platform Admin Console</strong>: Oversee organizations, platform revenue, global plan catalog, and system audit trail.
-              </p>
-            )}
-            {selectedPortal === 'Customer' && (
-              <p className="text-slate-600">
-                <strong>Customer Self-Service Portal</strong>: Track personal API and storage usage gauges, current period bill, and download invoices.
-              </p>
-            )}
-          </div>
+          {/* Inline Error Alert with Recovery Actions */}
+          {formError && (
+            <div className="mb-4 p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs shadow-2xs animate-in fade-in">
+              <div className="flex items-start gap-2.5">
+                <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="font-semibold text-rose-900 leading-snug">{formError}</p>
+                  <div className="mt-2.5 flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const creds = PORTAL_DEMO_CREDENTIALS[selectedPortal];
+                        setEmail(creds.email);
+                        setPassword(creds.password);
+                        setFormError('');
+                      }}
+                      className="px-2.5 py-1 bg-white border border-rose-300 rounded-lg text-rose-800 font-bold hover:bg-rose-100 transition-colors cursor-pointer flex items-center gap-1"
+                    >
+                      <RefreshCw className="w-3 h-3 text-rose-600" />
+                      <span>Auto-fill Demo Credentials</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setResetEmail(email || PORTAL_DEMO_CREDENTIALS[selectedPortal].email);
+                        setNewPassword('');
+                        setConfirmPassword('');
+                        setResetError('');
+                        setShowResetModal(true);
+                      }}
+                      className="px-2.5 py-1 bg-rose-600 text-white rounded-lg font-bold hover:bg-rose-700 transition-colors cursor-pointer flex items-center gap-1"
+                    >
+                      <KeyRound className="w-3 h-3" />
+                      <span>Create / Reset Password</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-3.5">
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
-                {selectedPortal === 'Customer' ? 'Customer email' : 'Work email'}
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600">
+                  {selectedPortal === 'Customer' ? 'Customer email / username' : 'Work email / username'}
+                </label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const creds = PORTAL_DEMO_CREDENTIALS[selectedPortal];
+                    setEmail(creds.email);
+                    setPassword(creds.password);
+                    setFormError('');
+                  }}
+                  className="text-[11px] font-semibold text-indigo-600 hover:text-indigo-800 cursor-pointer flex items-center gap-1"
+                >
+                  <RefreshCw className="w-2.5 h-2.5" />
+                  <span>Use demo</span>
+                </button>
+              </div>
               <input
-                type="email"
+                type="text"
                 required
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setFormError('');
+                }}
                 placeholder="you@company.com"
                 className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all shadow-2xs"
               />
@@ -203,23 +371,29 @@ export const LoginPage = () => {
                 <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600">
                   Password
                 </label>
-                <a
-                  href="#forgot"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    alert('Password reset instructions sent to ' + email);
+                <button
+                  type="button"
+                  onClick={() => {
+                    setResetEmail(email || PORTAL_DEMO_CREDENTIALS[selectedPortal].email);
+                    setNewPassword('');
+                    setConfirmPassword('');
+                    setResetError('');
+                    setShowResetModal(true);
                   }}
-                  className="text-xs font-semibold text-indigo-600 hover:text-indigo-700"
+                  className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 cursor-pointer"
                 >
-                  Forgot password?
-                </a>
+                  Create / Reset password?
+                </button>
               </div>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
                   required
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setFormError('');
+                  }}
                   placeholder="Enter password"
                   className="w-full px-4 py-2.5 pr-11 bg-white border border-slate-200 rounded-xl text-sm placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all shadow-2xs"
                 />
@@ -233,7 +407,26 @@ export const LoginPage = () => {
               </div>
             </div>
 
-            <div className="flex items-center justify-between pt-1">
+            {/* Demo Credentials Helper Pill */}
+            <div className="flex items-center justify-between text-[11px] bg-slate-50 border border-slate-200/80 px-3 py-1.5 rounded-xl text-slate-600">
+              <span className="truncate">
+                Demo: <span className="font-semibold text-indigo-700">{PORTAL_DEMO_CREDENTIALS[selectedPortal].email}</span> • <span className="font-semibold text-slate-700">{PORTAL_DEMO_CREDENTIALS[selectedPortal].password}</span>
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  const creds = PORTAL_DEMO_CREDENTIALS[selectedPortal];
+                  setEmail(creds.email);
+                  setPassword(creds.password);
+                  setFormError('');
+                }}
+                className="text-indigo-600 hover:text-indigo-800 font-bold ml-2 underline shrink-0 cursor-pointer"
+              >
+                Auto-fill
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between pt-0.5">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
@@ -253,7 +446,7 @@ export const LoginPage = () => {
                 </span>
               ) : (
                 <span className="flex items-center justify-center gap-2">
-                  <span>Sign in to {selectedPortal} Portal</span>
+                  <span>Sign in to {selectedPortal}</span>
                   <ArrowRight className="w-4 h-4 ml-1" />
                 </span>
               )}
@@ -261,7 +454,7 @@ export const LoginPage = () => {
           </form>
 
           {/* Registration footer */}
-          <div className="mt-5 text-center">
+          <div className="mt-4 text-center">
             {selectedPortal === 'Customer' ? (
               <p className="text-xs sm:text-sm text-slate-600">
                 New customer?{' '}
@@ -273,7 +466,7 @@ export const LoginPage = () => {
                   }}
                   className="font-semibold text-indigo-600 hover:text-indigo-700 hover:underline cursor-pointer"
                 >
-                  Create your customer account
+                  Create customer account
                 </button>
               </p>
             ) : (
@@ -287,7 +480,7 @@ export const LoginPage = () => {
                   }}
                   className="font-semibold text-indigo-600 hover:text-indigo-700 hover:underline cursor-pointer"
                 >
-                  Register your organization
+                  Register organization
                 </button>
               </p>
             )}
@@ -355,6 +548,115 @@ export const LoginPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Reset / Create Password Modal */}
+      {showResetModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto p-5 sm:p-6 space-y-4 animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
+                  <KeyRound className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg text-slate-900">Create / Reset Password</h3>
+                  <p className="text-xs text-slate-500">Set a new password and sign in immediately</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowResetModal(false)}
+                className="text-slate-400 hover:text-slate-600 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {resetError && (
+              <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold">
+                {resetError}
+              </div>
+            )}
+
+            <form onSubmit={handleResetSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+                  Email or Username
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={resetEmail}
+                  onChange={(e) => setResetEmail(e.target.value)}
+                  placeholder="owner@acme.com or your email"
+                  className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+                  New Password
+                </label>
+                <div className="relative">
+                  <input
+                    type={showResetPassword ? 'text' : 'password'}
+                    required
+                    minLength={4}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Enter at least 4 characters"
+                    className="w-full px-3.5 py-2.5 pr-11 bg-white border border-slate-200 rounded-xl text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowResetPassword(!showResetPassword)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                  >
+                    {showResetPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+                  Confirm New Password
+                </label>
+                <input
+                  type={showResetPassword ? 'text' : 'password'}
+                  required
+                  minLength={4}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Re-enter your new password"
+                  className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm"
+                />
+              </div>
+
+              <div className="p-3 bg-indigo-50/70 border border-indigo-100 rounded-xl text-xs text-indigo-900">
+                <p className="font-semibold mb-0.5">Instant Activation:</p>
+                <p className="text-slate-600">
+                  Submitting this will immediately update your password and log you in to your dashboard without waiting for an email link.
+                </p>
+              </div>
+
+              <div className="pt-2 flex items-center justify-end gap-3">
+                <Button variant="outline" type="button" onClick={() => setShowResetModal(false)}>
+                  Cancel
+                </Button>
+                <Button variant="primary" type="submit" disabled={isResetting}>
+                  {isResetting ? (
+                    <span className="flex items-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Updating...</span>
+                    </span>
+                  ) : (
+                    <span>Save & Sign In</span>
+                  )}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Register Organization or Customer Modal */}
       {showRegisterModal && (
