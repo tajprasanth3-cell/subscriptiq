@@ -37,7 +37,16 @@ export const Header = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const initials = organizationName
+  const effectiveOrgName =
+    role === 'Customer'
+      ? organizationName && !organizationName.includes('Acme')
+        ? organizationName
+        : 'TechCorp'
+      : role === 'Super Admin'
+      ? 'SubscriptIQ Platform'
+      : organizationName || 'Acme Corp';
+
+  const initials = effectiveOrgName
     .split(' ')
     .map((w) => w[0])
     .join('')
@@ -108,7 +117,7 @@ export const Header = ({
               </div>
               <div className="hidden md:block text-left text-xs mr-1">
                 <p className="font-bold text-slate-900 leading-tight truncate max-w-[110px]">
-                  {organizationName}
+                  {effectiveOrgName}
                 </p>
                 <p className="text-[10px] text-slate-400 font-medium">{role}</p>
               </div>
@@ -119,7 +128,7 @@ export const Header = ({
             {dropdownOpen && (
               <div className="absolute right-0 mt-2 w-64 max-w-[calc(100vw-1.5rem)] bg-white rounded-2xl border border-slate-200 shadow-xl p-3 space-y-2 animate-in fade-in zoom-in-95 duration-100 z-50">
                 <div className="p-2 border-b border-slate-100">
-                  <p className="font-bold text-xs text-slate-900 truncate">{organizationName}</p>
+                  <p className="font-bold text-xs text-slate-900 truncate">{effectiveOrgName}</p>
                   <p className="text-[11px] text-slate-500 truncate">{currentUserEmail}</p>
                   <div className="mt-2">
                     <Badge variant={role === 'Super Admin' ? 'renewal' : 'active'}>{role}</Badge>

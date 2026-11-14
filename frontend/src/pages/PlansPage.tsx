@@ -171,8 +171,12 @@ export const PlansPage = () => {
   return (
     <div className="flex-1 flex flex-col">
       <Header
-        title="Plans and subscription"
-        subtitle="Choose, change, create or cancel subscription plans"
+        title={role === 'Customer' ? 'My Subscription Plan' : 'Plans and subscription'}
+        subtitle={
+          role === 'Customer'
+            ? 'Review your active tier limits, upgrade options and itemized renewal terms'
+            : 'Choose, change, create or cancel subscription plans'
+        }
         actions={
           <div className="flex items-center gap-1.5 sm:gap-3">
             {/* View Switcher (Cards vs Table matching Slide 10) */}

@@ -64,7 +64,7 @@ export const LoginPage = () => {
       return;
     }
     setIsSubmitting(true);
-    const ok = await login(email.trim(), password.trim());
+    const ok = await login(email.trim(), password.trim(), selectedPortal);
     setIsSubmitting(false);
     if (!ok) {
       setFormError(

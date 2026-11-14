@@ -11,6 +11,7 @@
     "start": "node dist/index.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "tsx --test src/tests/usage.test.ts",
+    "mongo:dev": "node scripts/start-mongo.mjs",
     "reset:data": "node -e \"require('fs').rmSync('data', { recursive: true, force: true })\""
   },
   "dependencies": {

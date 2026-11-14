@@ -38,11 +38,26 @@ export const AlertsPage = () => {
   } = useApp();
 
   const canManageAlerts = role !== 'Customer';
+  const isCustomer = role === 'Customer';
 
   const [formRules, setFormRules] = useState<AlertRules>(alertRules);
   const [isSaved, setIsSaved] = useState(false);
   const [selectedNotificationForReader, setSelectedNotificationForReader] =
     useState<AlertNotification | null>(null);
+
+  const displayNotifications = isCustomer
+    ? notifications.filter((n) => {
+        const lower = n.message.toLowerCase();
+        if (
+          lower.includes('innovate') ||
+          lower.includes('global solutions') ||
+          lower.includes('acme corp has reached')
+        ) {
+          return false;
+        }
+        return true;
+      })
+    : notifications;
 
   const handleSave = () => {
     updateAlertRules(formRules);
@@ -96,8 +111,12 @@ export const AlertsPage = () => {
   return (
     <div className="flex-1 flex flex-col">
       <Header
-        title="Limits and alerts"
-        subtitle="Rules for thresholds and exceeded limits & live activity stream"
+        title={isCustomer ? 'My Notifications' : 'Limits and alerts'}
+        subtitle={
+          isCustomer
+            ? 'Personal usage alerts, threshold notices and payment receipts'
+            : 'Rules for thresholds and exceeded limits & live activity stream'
+        }
         actions={
           canManageAlerts ? (
             <div className="flex items-center gap-2">
@@ -268,7 +287,7 @@ export const AlertsPage = () => {
             </p>
 
             <div className="space-y-3 pt-1 max-h-[520px] overflow-y-auto">
-              {notifications.map((n) => {
+              {displayNotifications.map((n) => {
                 const effectiveCustId =
                   n.customerId ||
                   (n.message.includes('TechCorp')

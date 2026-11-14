@@ -23,7 +23,7 @@ export async function connectDatabase(): Promise<boolean> {
     await mongoose.connect(env.mongoUri, {
       serverSelectionTimeoutMS: 5000,
     });
-    console.log('  MongoDB     : Connected successfully to MongoDB Atlas cluster');
+    console.log(`  MongoDB     : Connected successfully to MongoDB (${maskedUri})`);
     return true;
   } catch (error) {
     const err = error as Error;

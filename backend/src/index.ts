@@ -11,12 +11,17 @@ async function bootstrap(): Promise<void> {
   // Connect to MongoDB Atlas (if configured)
   await connectDatabase();
 
+  // Load the dataset from MongoDB (migrating the JSON store on first run).
+  const backend = await store.init();
+
   const server = app.listen(env.port, () => {
     console.log('');
     console.log('  SubscriptIQ API');
     console.log(`  Environment : ${env.nodeEnv}`);
     console.log(`  Listening   : http://localhost:${env.port}`);
-    console.log(`  Data store  : ${storePath()}`);
+    console.log(
+      `  Data store  : ${backend === 'mongodb' ? 'MongoDB' : storePath()}`
+    );
     console.log(
       `  Seed        : ${store.data.plans.length} plans, ${store.data.customers.length} customers, ${store.data.events.length} events`
     );
@@ -26,7 +31,7 @@ async function bootstrap(): Promise<void> {
   const shutdown = (signal: string) => {
     console.log(`\n${signal} received — shutting down gracefully...`);
     server.close(async () => {
-      store.persist();
+      await store.flush();
       await disconnectDatabase();
       process.exit(0);
     });

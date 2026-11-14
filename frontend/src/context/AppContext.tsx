@@ -62,7 +62,7 @@ interface AppContextType {
   currentUserEmail: string;
   role: Role;
   organizationName: string;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string, role?: Role) => Promise<boolean>;
   resetPassword: (email: string, newPassword: string) => Promise<boolean>;
   register: (organizationName: string, email: string, password: string, roleToRegister?: Role) => void;
   logout: () => void;
@@ -318,9 +318,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     };
   }, [applyUser, loadWorkspace, fail]);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (email: string, password: string, role?: Role): Promise<boolean> => {
     try {
-      const result = await api.auth.login(email, password);
+      const result = await api.auth.login(email, password, role);
       setToken(result.token);
       applyUser(result.user);
       setIsAuthenticated(true);

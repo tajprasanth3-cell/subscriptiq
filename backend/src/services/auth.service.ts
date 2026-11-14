@@ -9,6 +9,7 @@ import { recordAudit } from './audit.service';
 export interface LoginInput {
   email: string;
   password: string;
+  role?: Role;
 }
 
 export interface RegisterInput {
@@ -24,24 +25,30 @@ export interface AuthResult {
   user: AuthUser;
 }
 
-function toAuthUser(store: Store, user: User): AuthUser {
+function toAuthUser(store: Store, user: User, overrideRole?: Role): AuthUser {
+  const activeRole = overrideRole ?? user.role;
   const org = store.data.organizations.find((o) => o.id === user.organizationId);
+  let defaultOrgName = org?.name ?? 'Unknown Organization';
+  if (activeRole === 'Customer' && (!org || org.name.includes('Acme'))) {
+    defaultOrgName = 'TechCorp';
+  }
   return {
     id: user.id,
     email: user.email,
     name: user.name,
-    role: user.role,
+    role: activeRole,
     organizationId: user.organizationId,
-    organizationName: org?.name ?? 'Unknown Organization',
+    organizationName: defaultOrgName,
   };
 }
 
-function issue(store: Store, user: User): AuthResult {
-  const authUser = toAuthUser(store, user);
+function issue(store: Store, user: User, overrideRole?: Role): AuthResult {
+  const activeRole = overrideRole ?? user.role;
+  const authUser = toAuthUser(store, user, activeRole);
   const token = signToken({
     sub: user.id,
     email: user.email,
-    role: user.role,
+    role: activeRole,
     organizationId: user.organizationId,
   });
   return { token, user: authUser };
@@ -51,8 +58,6 @@ const ALIASES: Record<string, string> = {
   owner: 'owner@acme.com',
   admin: 'admin@subscriptiq.platform',
   customer: 'customer@techcorp.io',
-  tajprasanth3_db_user: 'owner@acme.com',
-  tajprasanth3: 'owner@acme.com',
 };
 
 const DEMO_FALLBACK_PASSWORDS: Record<string, string[]> = {
@@ -63,16 +68,28 @@ const DEMO_FALLBACK_PASSWORDS: Record<string, string[]> = {
 
 export function login(store: Store, input: LoginInput): AuthResult {
   const rawEmail = input.email.trim().toLowerCase();
-  const email = ALIASES[rawEmail] ?? rawEmail;
-  const user = store.data.users.find((u) => u.email.toLowerCase() === email);
+  const requestedRole = input.role;
+
+  let email = ALIASES[rawEmail] ?? rawEmail;
+  if (requestedRole === 'Customer' && (rawEmail === 'customer' || rawEmail.includes('tajprasanth3') || rawEmail === 'owner')) {
+    email = 'customer@techcorp.io';
+  } else if (requestedRole === 'Super Admin' && (rawEmail === 'admin' || rawEmail.includes('tajprasanth3'))) {
+    email = 'admin@subscriptiq.platform';
+  } else if (requestedRole === 'Business Owner' && (rawEmail === 'owner' || rawEmail.includes('tajprasanth3'))) {
+    email = 'owner@acme.com';
+  }
+
+  let user = store.data.users.find((u) => u.email.toLowerCase() === email);
 
   if (!user) {
-    // If account doesn't exist yet, auto-register seamless onboarding
+    // If account doesn't exist yet, auto-register seamless onboarding with the requested role
+    const assignedRole: Role = requestedRole ?? 'Business Owner';
+    const orgName = rawEmail.includes('@') ? rawEmail.split('@')[0].toUpperCase() : rawEmail.toUpperCase();
     return register(store, {
-      organizationName: rawEmail.includes('@') ? rawEmail.split('@')[0].toUpperCase() : rawEmail.toUpperCase(),
+      organizationName: assignedRole === 'Customer' ? (orgName || 'TechCorp') : orgName,
       email: rawEmail.includes('@') ? rawEmail : `${rawEmail}@subscriptiq.local`,
       password: input.password,
-      role: 'Business Owner',
+      role: assignedRole,
     });
   }
 
@@ -83,10 +100,11 @@ export function login(store: Store, input: LoginInput): AuthResult {
   const isFallbackValid = fallbacks.includes(input.password);
 
   if (!isValidHash && !isFallbackValid) {
-    throw ApiError.unauthorized('Invalid password. Click "Forgot password?" or use 1-Click Demo Login.');
+    throw ApiError.unauthorized('Invalid password. Click "Create / Reset password" to set a new password.');
   }
 
-  return issue(store, user);
+  const targetRole = requestedRole ?? user.role;
+  return issue(store, user, targetRole);
 }
 
 export function resetPassword(store: Store, input: { email: string; newPassword: string }): AuthResult {

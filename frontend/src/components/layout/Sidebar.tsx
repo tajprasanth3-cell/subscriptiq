@@ -194,7 +194,13 @@ export const Sidebar = () => {
               </div>
               <div className="min-w-0 flex-1">
                 <p className="font-bold text-xs text-slate-900 leading-tight truncate">
-                  {organizationName || 'TechCorp'}
+                  {role === 'Customer'
+                    ? organizationName && !organizationName.includes('Acme')
+                      ? organizationName
+                      : 'TechCorp'
+                    : role === 'Super Admin'
+                    ? 'SubscriptIQ Platform'
+                    : organizationName || 'Acme Corp'}
                 </p>
                 <div className="flex items-center gap-1.5 mt-0.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />

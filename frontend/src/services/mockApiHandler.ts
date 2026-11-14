@@ -88,11 +88,17 @@ export async function mockApiHandler<T>(path: string, options: RequestInit = {})
 
   // 1. Auth endpoints
   if (pathname === '/auth/login' && method === 'POST') {
-    const { email } = body;
+    const { email, role } = body;
     const lowerEmail = (email || '').toLowerCase().trim();
 
     let account = DEMO_ACCOUNTS[lowerEmail];
-    if (!account) {
+    if (role === 'Customer') {
+      account = DEMO_ACCOUNTS['customer@techcorp.io'];
+    } else if (role === 'Super Admin') {
+      account = DEMO_ACCOUNTS['admin@subscriptiq.platform'];
+    } else if (role === 'Business Owner') {
+      account = DEMO_ACCOUNTS['owner@acme.com'];
+    } else if (!account) {
       if (lowerEmail.includes('admin')) {
         account = {
           role: 'Super Admin',
@@ -119,7 +125,7 @@ export async function mockApiHandler<T>(path: string, options: RequestInit = {})
 
     currentAuthUser = {
       id: `user_${Date.now()}`,
-      email: email || 'owner@acme.com',
+      email: email || (account.role === 'Customer' ? 'customer@techcorp.io' : 'owner@acme.com'),
       name: account.name,
       role: account.role,
       organizationId: account.orgId,

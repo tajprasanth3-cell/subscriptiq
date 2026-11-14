@@ -24,20 +24,35 @@ const badgeVariant = (status: string): BadgeVariant => {
 };
 
 export const BillingPage = () => {
-  const { currentInvoice, billingHistory, downloadInvoicePDF, payInvoice } = useApp();
+  const { currentInvoice, billingHistory, downloadInvoicePDF, payInvoice, role, organizationName } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
   const [activePage, setActivePage] = useState(1);
 
+  const isCustomer = role === 'Customer';
+
+  const baseHistory = useMemo(() => {
+    if (!isCustomer) return billingHistory;
+    return billingHistory.filter(
+      (inv) =>
+        (inv.customer &&
+          (inv.customer.toLowerCase().includes('techcorp') ||
+            inv.customer.toLowerCase().includes(organizationName.toLowerCase()))) ||
+        inv.customerId === 'cust_4' ||
+        inv.id === 'inv_current' ||
+        inv.id === 'inv_1'
+    );
+  }, [billingHistory, isCustomer, organizationName]);
+
   const filteredHistory = useMemo(() => {
     const search = searchQuery.trim().toLowerCase();
-    if (!search) return billingHistory;
-    return billingHistory.filter(
+    if (!search) return baseHistory;
+    return baseHistory.filter(
       (inv) =>
         inv.invoiceNumber.toLowerCase().includes(search) ||
         (inv.customer && inv.customer.toLowerCase().includes(search)) ||
         (inv.customerId && inv.customerId.toLowerCase().includes(search))
     );
-  }, [billingHistory, searchQuery]);
+  }, [baseHistory, searchQuery]);
 
   const totalInvoices = filteredHistory.length;
   const totalPages = Math.max(1, Math.ceil(totalInvoices / PAGE_SIZE));
@@ -65,12 +80,16 @@ export const BillingPage = () => {
   return (
     <div className="flex-1 flex flex-col min-w-0 w-full">
       <Header
-        title="Invoices"
-        subtitle="View and manage customer invoices, itemized charges & payment receipts"
+        title={isCustomer ? 'My Billing History' : 'Invoices'}
+        subtitle={
+          isCustomer
+            ? 'View your personal subscription invoices, itemized charges & payment receipts'
+            : 'View and manage customer invoices, itemized charges & payment receipts'
+        }
         showSearch
         searchValue={searchQuery}
         onSearchChange={handleSearchChange}
-        searchPlaceholder="Search invoice #, customer..."
+        searchPlaceholder={isCustomer ? 'Search my invoices...' : 'Search invoice #, customer...'}
         actions={
           <Button
             variant="outline"

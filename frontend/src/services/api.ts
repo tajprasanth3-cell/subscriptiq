@@ -14,6 +14,11 @@ import { mockApiHandler } from './mockApiHandler';
 
 const API_BASE = (import.meta.env.VITE_API_URL ?? 'http://localhost:4000/api').replace(/\/$/, '');
 const TOKEN_KEY = 'subscriptiq.token';
+const REQUEST_TIMEOUT_MS = 15000;
+// The in-browser mock service is only used when explicitly opted in. Silent
+// fallback used to hide backend failures and serve data that was never fetched
+// from the database.
+const USE_MOCK_API = import.meta.env.VITE_USE_MOCK_API === 'true';
 
 export interface AuthUser {
   id: string;
@@ -113,7 +118,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 1200);
+    const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
     const response = await fetch(`${API_BASE}${path}`, {
       ...init,
@@ -155,9 +160,19 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
       throw error;
     }
 
-    // If network error (backend offline, connection refused, AbortError, Failed to fetch):
-    // Transparently execute via Mock Service!
-    return mockApiHandler<T>(path, options);
+    // Mock service is opt-in only, so real data is never silently replaced.
+    if (USE_MOCK_API) {
+      return mockApiHandler<T>(path, options);
+    }
+
+    const timedOut = error instanceof DOMException && error.name === 'AbortError';
+    throw new ApiError(
+      0,
+      timedOut
+        ? `Request timed out after ${REQUEST_TIMEOUT_MS / 1000}s. Is the backend running on port 4000?`
+        : 'Unable to reach the API. Is the backend running on port 4000?',
+      timedOut ? 'REQUEST_TIMEOUT' : 'NETWORK_ERROR'
+    );
   }
 }
 
@@ -178,11 +193,11 @@ export interface PageQuery {
 
 export const api = {
   auth: {
-    login: (email: string, password: string) =>
+    login: (email: string, password: string, role?: Role) =>
       request<AuthResult>('/auth/login', {
         method: 'POST',
         auth: false,
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, role }),
       }),
     register: (organizationName: string, email: string, password: string, role: Role = 'Business Owner') =>
       request<AuthResult>('/auth/register', {

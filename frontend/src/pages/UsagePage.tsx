@@ -4,17 +4,29 @@ import { Badge } from '../components/common/Badge';
 import { Button } from '../components/common/Button';
 import { Header } from '../components/layout/Header';
 import { useApp } from '../context/AppContext';
-import { PlusCircle, Copy, Download, Trash2 } from 'lucide-react';
+import { PlusCircle, Copy, Download, Trash2, Gauge, Zap, HardDrive, ArrowRight, ShieldCheck } from 'lucide-react';
 import clsx from 'clsx';
 
 type TabType = 'all' | 'duplicate' | 'rejected';
 
 export const UsagePage = () => {
-  const { events, simulateIngestion, clearEvents, setCurrentTab } = useApp();
+  const { events, simulateIngestion, clearEvents, setCurrentTab, role, meters, organizationName } = useApp();
   const [activeTab, setActiveTab] = useState<TabType>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredEvents = events.filter((ev) => {
+  const isCustomer = role === 'Customer';
+
+  // For customers, filter to TechCorp or current organization events
+  const baseEvents = isCustomer
+    ? events.filter(
+        (ev) =>
+          ev.customer.toLowerCase().includes(organizationName.toLowerCase()) ||
+          ev.customer.toLowerCase() === 'techcorp' ||
+          ev.customer.toLowerCase() === 'acme'
+      )
+    : events;
+
+  const filteredEvents = baseEvents.filter((ev) => {
     const matchesTab = activeTab === 'all' || ev.statusCategory === activeTab;
     const matchesSearch =
       ev.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -23,8 +35,8 @@ export const UsagePage = () => {
     return matchesTab && matchesSearch;
   });
 
-  const duplicateCount = events.filter((e) => e.statusCategory === 'duplicate').length;
-  const rejectedCount = events.filter((e) => e.statusCategory === 'rejected').length;
+  const duplicateCount = baseEvents.filter((e) => e.statusCategory === 'duplicate').length;
+  const rejectedCount = baseEvents.filter((e) => e.statusCategory === 'rejected').length;
 
   const handleExportCSV = () => {
     const headers = ['Event ID', 'Customer', 'Resource', 'Quantity', 'Timestamp', 'Status'];
@@ -51,33 +63,41 @@ export const UsagePage = () => {
   return (
     <div className="flex-1 flex flex-col">
       <Header
-        title="Usage Monitoring"
-        subtitle="Track and analyze customer usage with idempotent event validation"
+        title={isCustomer ? 'My Resource Usage' : 'Usage Monitoring'}
+        subtitle={
+          isCustomer
+            ? 'Real-time resource meters and personal consumption logs'
+            : 'Track and analyze customer usage with idempotent event validation'
+        }
         showSearch
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
-        searchPlaceholder="Search event ID, customer..."
+        searchPlaceholder={isCustomer ? 'Search usage events...' : 'Search event ID, customer...'}
         actions={
           <div className="flex items-center gap-1.5 sm:gap-2">
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => simulateIngestion(false)}
-              icon={<PlusCircle className="w-3.5 h-3.5" />}
-            >
-              <span className="hidden sm:inline">Ingest Event</span>
-              <span className="sm:hidden">Ingest</span>
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => simulateIngestion(true)}
-              icon={<Copy className="w-3.5 h-3.5" />}
-              title="Test idempotency: Ingest event with existing ID"
-            >
-              <span className="hidden sm:inline">Test Duplicate</span>
-              <span className="sm:hidden">Dup</span>
-            </Button>
+            {!isCustomer && (
+              <>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => simulateIngestion(false)}
+                  icon={<PlusCircle className="w-3.5 h-3.5" />}
+                >
+                  <span className="hidden sm:inline">Ingest Event</span>
+                  <span className="sm:hidden">Ingest</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => simulateIngestion(true)}
+                  icon={<Copy className="w-3.5 h-3.5" />}
+                  title="Test idempotency: Ingest event with existing ID"
+                >
+                  <span className="hidden sm:inline">Test Duplicate</span>
+                  <span className="sm:hidden">Dup</span>
+                </Button>
+              </>
+            )}
             <Button
               variant="outline"
               size="sm"
@@ -87,7 +107,7 @@ export const UsagePage = () => {
               <span className="hidden md:inline">Export CSV</span>
               <span className="md:hidden">CSV</span>
             </Button>
-            {events.length > 0 && (
+            {!isCustomer && events.length > 0 && (
               <Button
                 variant="ghost"
                 size="sm"
@@ -100,60 +120,149 @@ export const UsagePage = () => {
       />
 
       <div className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 max-w-7xl w-full mx-auto responsive-container">
-        {/* KPI Metrics Row (Slide 11 & Mockup 4) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="flex flex-col justify-between">
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              Total Requests
-            </p>
-            <div className="flex items-baseline justify-between mt-2">
-              <h3 className="text-3xl font-extrabold text-slate-900">4.8M</h3>
-              <span className="text-xs font-bold text-emerald-600">+22.1%</span>
-            </div>
-            <p className="text-xs text-slate-400 mt-4">Counted toward usage</p>
-          </Card>
+        {/* KPI Metrics Row */}
+        {isCustomer ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card className="flex flex-col justify-between">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  API Requests
+                </p>
+                <Zap className="w-4 h-4 text-indigo-600" />
+              </div>
+              <div className="flex items-baseline justify-between mt-2">
+                <h3 className="text-2xl font-extrabold text-slate-900">82,000</h3>
+                <span className="text-xs font-bold text-slate-500">/ 100K reqs</span>
+              </div>
+              <div className="mt-3">
+                <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                  <div className="bg-indigo-600 h-2 rounded-full" style={{ width: '82%' }} />
+                </div>
+                <p className="text-[11px] text-slate-500 mt-1.5 flex justify-between font-medium">
+                  <span>82% of quota used</span>
+                  <span className="text-emerald-600">Within Limit</span>
+                </p>
+              </div>
+            </Card>
 
-          <Card className="flex flex-col justify-between">
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              Avg. per Customer
-            </p>
-            <div className="flex items-baseline justify-between mt-2">
-              <h3 className="text-3xl font-extrabold text-slate-900">19,200</h3>
-            </div>
-            <p className="text-xs text-slate-400 mt-4">Across active tenants</p>
-          </Card>
+            <Card className="flex flex-col justify-between">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  Cloud Storage
+                </p>
+                <HardDrive className="w-4 h-4 text-indigo-600" />
+              </div>
+              <div className="flex items-baseline justify-between mt-2">
+                <h3 className="text-2xl font-extrabold text-slate-900">20.5 GB</h3>
+                <span className="text-xs font-bold text-slate-500">/ 50 GB</span>
+              </div>
+              <div className="mt-3">
+                <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                  <div className="bg-emerald-500 h-2 rounded-full" style={{ width: '41%' }} />
+                </div>
+                <p className="text-[11px] text-slate-500 mt-1.5 flex justify-between font-medium">
+                  <span>41% volume allocated</span>
+                  <span className="text-emerald-600">Optimal</span>
+                </p>
+              </div>
+            </Card>
 
-          <Card className="flex flex-col justify-between">
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              Duplicates Ignored
-            </p>
-            <div className="flex items-baseline justify-between mt-2">
-              <h3 className="text-3xl font-extrabold text-slate-900">
-                {(duplicateCount * 42).toLocaleString()}
-              </h3>
-            </div>
-            <p className="text-xs text-slate-400 mt-4">Idempotent suppression</p>
-          </Card>
+            <Card className="flex flex-col justify-between">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  Transactions
+                </p>
+                <Gauge className="w-4 h-4 text-amber-500" />
+              </div>
+              <div className="flex items-baseline justify-between mt-2">
+                <h3 className="text-2xl font-extrabold text-slate-900">9,600</h3>
+                <span className="text-xs font-bold text-slate-500">/ 10,000</span>
+              </div>
+              <div className="mt-3">
+                <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                  <div className="bg-amber-500 h-2 rounded-full" style={{ width: '96%' }} />
+                </div>
+                <p className="text-[11px] text-slate-500 mt-1.5 flex justify-between font-medium">
+                  <span>96% near ceiling</span>
+                  <span className="text-amber-600">Alert Sent</span>
+                </p>
+              </div>
+            </Card>
 
-          <Card className="flex flex-col justify-between">
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              Usage Alerts
-            </p>
-            <div className="flex items-baseline justify-between mt-2">
-              <h3 className="text-3xl font-extrabold text-slate-900">12</h3>
-              <span className="text-xs font-bold text-amber-500">Threshold passed</span>
-            </div>
-            <p className="text-xs text-slate-400 mt-4">Active quota warnings</p>
-          </Card>
-        </div>
+            <Card className="flex flex-col justify-between bg-indigo-50/50 border border-indigo-100">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-semibold text-indigo-900 uppercase tracking-wider">
+                  Account Status
+                </p>
+                <ShieldCheck className="w-4 h-4 text-emerald-600" />
+              </div>
+              <div className="mt-2">
+                <h3 className="text-xl font-extrabold text-indigo-950">Active Customer</h3>
+                <p className="text-xs text-indigo-700 mt-1">TechCorp Tenant</p>
+              </div>
+              <div className="mt-3 pt-2 border-t border-indigo-100/80 flex items-center justify-between text-xs">
+                <span className="text-slate-500">Next renewal:</span>
+                <span className="font-bold text-slate-800">Apr 30, 2026</span>
+              </div>
+            </Card>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card className="flex flex-col justify-between">
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                Total Requests
+              </p>
+              <div className="flex items-baseline justify-between mt-2">
+                <h3 className="text-3xl font-extrabold text-slate-900">4.8M</h3>
+                <span className="text-xs font-bold text-emerald-600">+22.1%</span>
+              </div>
+              <p className="text-xs text-slate-400 mt-4">Counted toward usage</p>
+            </Card>
 
-        {/* Split Section: Usage Trend Bar Visual + Top Customers (Slide 11) */}
+            <Card className="flex flex-col justify-between">
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                Avg. per Customer
+              </p>
+              <div className="flex items-baseline justify-between mt-2">
+                <h3 className="text-3xl font-extrabold text-slate-900">19,200</h3>
+              </div>
+              <p className="text-xs text-slate-400 mt-4">Across active tenants</p>
+            </Card>
+
+            <Card className="flex flex-col justify-between">
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                Duplicates Ignored
+              </p>
+              <div className="flex items-baseline justify-between mt-2">
+                <h3 className="text-3xl font-extrabold text-slate-900">
+                  {(duplicateCount * 42).toLocaleString()}
+                </h3>
+              </div>
+              <p className="text-xs text-slate-400 mt-4">Idempotent suppression</p>
+            </Card>
+
+            <Card className="flex flex-col justify-between">
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                Usage Alerts
+              </p>
+              <div className="flex items-baseline justify-between mt-2">
+                <h3 className="text-3xl font-extrabold text-slate-900">12</h3>
+                <span className="text-xs font-bold text-amber-500">Threshold passed</span>
+              </div>
+              <p className="text-xs text-slate-400 mt-4">Active quota warnings</p>
+            </Card>
+          </div>
+        )}
+
+        {/* Split Section: Usage Trend Bar Visual + Quota or Top Customers */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Usage Trend Visual (2 columns) */}
           <Card className="lg:col-span-2 space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div>
-                <h3 className="font-bold text-base text-slate-900">Usage Trend</h3>
+                <h3 className="font-bold text-base text-slate-900">
+                  {isCustomer ? 'Personal Consumption Trend' : 'Usage Trend'}
+                </h3>
                 <p className="text-xs text-slate-400">Daily API Requests & Storage distribution</p>
               </div>
               <div className="flex items-center gap-3 text-xs font-semibold">
@@ -166,7 +275,7 @@ export const UsagePage = () => {
               </div>
             </div>
 
-            {/* Custom SVG Dual Bar Chart (Slide 11) */}
+            {/* Custom SVG Dual Bar Chart */}
             <div className="pt-2 overflow-x-auto responsive-table-wrapper">
               <svg viewBox="0 0 540 150" className="w-full min-w-[460px] h-40">
                 {[
@@ -223,49 +332,87 @@ export const UsagePage = () => {
             </div>
           </Card>
 
-          {/* Top Customers (1 column - Slide 11) */}
-          <Card className="space-y-4 flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                <h3 className="font-bold text-base text-slate-900">Top Customers</h3>
-                <button
-                  onClick={() => setCurrentTab('customers')}
-                  className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 cursor-pointer"
-                >
-                  View All &rarr;
-                </button>
-              </div>
-
-              <div className="space-y-3 pt-2">
-                {[
-                  { name: 'TechCorp', initials: 'TC', usage: '950K reqs', percent: 95 },
-                  { name: 'Innovate Ltd', initials: 'IL', usage: '720K reqs', percent: 72 },
-                  { name: 'Global Solutions', initials: 'GS', usage: '580K reqs', percent: 58 },
-                  { name: 'Acme Corp', initials: 'AC', usage: '510K reqs', percent: 51 },
-                ].map((cust) => (
-                  <div
-                    key={cust.name}
-                    className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100/70 transition-colors cursor-pointer"
+          {/* Right Card: Customer Plan Quota Card or Business Top Customers */}
+          {isCustomer ? (
+            <Card className="space-y-4 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                  <h3 className="font-bold text-base text-slate-900">Current Plan Quotas</h3>
+                  <button
+                    onClick={() => setCurrentTab('plans')}
+                    className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 cursor-pointer flex items-center gap-1"
                   >
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-700 font-bold text-xs flex items-center justify-center">
-                        {cust.initials}
-                      </div>
-                      <div>
-                        <p className="font-bold text-xs text-slate-900">{cust.name}</p>
-                        <p className="text-[11px] text-slate-400 font-medium">{cust.usage}</p>
-                      </div>
-                    </div>
-                    <span className="text-xs font-mono font-bold text-slate-700">{cust.percent}%</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+                    <span>Change Plan</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
 
-            <div className="pt-3 border-t border-slate-100 text-[11px] text-slate-400 text-center">
-              Quotas verified per tenant isolation
-            </div>
-          </Card>
+                <div className="space-y-3 pt-3">
+                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-1">
+                    <p className="text-[11px] font-semibold text-slate-400 uppercase">Subscribed Tier</p>
+                    <p className="text-sm font-bold text-slate-900">Professional Plan (₹1,499/mo)</p>
+                  </div>
+
+                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-1">
+                    <p className="text-[11px] font-semibold text-slate-400 uppercase">Monthly API Cap</p>
+                    <p className="text-sm font-bold text-slate-900">100,000 Webhook Invocations</p>
+                  </div>
+
+                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-1">
+                    <p className="text-[11px] font-semibold text-slate-400 uppercase">Storage Limit</p>
+                    <p className="text-sm font-bold text-slate-900">50 GB High-Speed Blob Volume</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-slate-100 text-[11px] text-slate-400 text-center font-medium">
+                Customer account: {organizationName || 'TechCorp'}
+              </div>
+            </Card>
+          ) : (
+            <Card className="space-y-4 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                  <h3 className="font-bold text-base text-slate-900">Top Customers</h3>
+                  <button
+                    onClick={() => setCurrentTab('customers')}
+                    className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 cursor-pointer"
+                  >
+                    View All &rarr;
+                  </button>
+                </div>
+
+                <div className="space-y-3 pt-2">
+                  {[
+                    { name: 'TechCorp', initials: 'TC', usage: '950K reqs', percent: 95 },
+                    { name: 'Innovate Ltd', initials: 'IL', usage: '720K reqs', percent: 72 },
+                    { name: 'Global Solutions', initials: 'GS', usage: '580K reqs', percent: 58 },
+                    { name: 'Acme Corp', initials: 'AC', usage: '510K reqs', percent: 51 },
+                  ].map((cust) => (
+                    <div
+                      key={cust.name}
+                      className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100/70 transition-colors cursor-pointer"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-700 font-bold text-xs flex items-center justify-center">
+                          {cust.initials}
+                        </div>
+                        <div>
+                          <p className="font-bold text-xs text-slate-900">{cust.name}</p>
+                          <p className="text-[11px] text-slate-400 font-medium">{cust.usage}</p>
+                        </div>
+                      </div>
+                      <span className="text-xs font-mono font-bold text-slate-700">{cust.percent}%</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-slate-100 text-[11px] text-slate-400 text-center">
+                Quotas verified per tenant isolation
+              </div>
+            </Card>
+          )}
         </div>
 
         {/* Events Table Card with Tabs */}
@@ -273,7 +420,7 @@ export const UsagePage = () => {
           {/* Sub Navigation Tabs */}
           <div className="flex items-center gap-4 sm:gap-6 px-4 sm:px-6 pt-3 sm:pt-4 border-b border-slate-200 overflow-x-auto">
             {[
-              { id: 'all' as TabType, label: `All events (${events.length})` },
+              { id: 'all' as TabType, label: `All events (${baseEvents.length})` },
               {
                 id: 'duplicate' as TabType,
                 label: `Duplicates (${duplicateCount})`,
@@ -307,7 +454,7 @@ export const UsagePage = () => {
               <thead className="bg-slate-50/70 border-b border-slate-200 text-slate-500 uppercase font-semibold text-[11px] tracking-wider">
                 <tr>
                   <th className="py-3 px-6">Event ID</th>
-                  <th className="py-3 px-6">Customer</th>
+                  <th className="py-3 px-6">{isCustomer ? 'Account' : 'Customer'}</th>
                   <th className="py-3 px-6">Resource</th>
                   <th className="py-3 px-6">Quantity</th>
                   <th className="py-3 px-6">Timestamp</th>
@@ -320,7 +467,9 @@ export const UsagePage = () => {
                     <td className="py-3.5 px-6 font-mono text-xs font-semibold text-slate-900">
                       {ev.id}
                     </td>
-                    <td className="py-3.5 px-6">{ev.customer}</td>
+                    <td className="py-3.5 px-6 font-semibold text-slate-900">
+                      {isCustomer ? organizationName || 'TechCorp' : ev.customer}
+                    </td>
                     <td className="py-3.5 px-6">{ev.resource}</td>
                     <td className="py-3.5 px-6 font-mono text-xs">{ev.quantity}</td>
                     <td className="py-3.5 px-6 text-slate-500 text-xs">{ev.timestamp}</td>
@@ -342,7 +491,7 @@ export const UsagePage = () => {
                 {filteredEvents.length === 0 && (
                   <tr>
                     <td colSpan={6} className="py-8 text-center text-slate-400 text-xs">
-                      No events found matching current criteria. Try clicking "Ingest Event".
+                      No events found matching current criteria.
                     </td>
                   </tr>
                 )}
