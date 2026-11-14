@@ -281,6 +281,33 @@ export const api = {
       }),
   },
 
+  payments: {
+    methods: () => request<{ gateways: any[]; currency: string }>('/payments/methods'),
+    createOrder: (input: { amount: number; currency?: string; planName?: string; invoiceId?: string }) =>
+      request<{ orderId: string; amount: number; currency: string; keyId: string }>('/payments/create-order', {
+        method: 'POST',
+        body: JSON.stringify(input),
+      }),
+    verify: (input: {
+      orderId: string;
+      paymentMethod: string;
+      paymentDetails?: any;
+      invoiceId?: string;
+      planName?: string;
+      amount: number;
+    }) =>
+      request<{
+        success: boolean;
+        transactionId: string;
+        orderId: string;
+        receiptNumber: string;
+        invoice?: Invoice;
+      }>('/payments/verify', {
+        method: 'POST',
+        body: JSON.stringify(input),
+      }),
+  },
+
   customers: {
     list: (params: PageQuery & { status?: string } = {}) =>
       request<Paginated<Customer>>(

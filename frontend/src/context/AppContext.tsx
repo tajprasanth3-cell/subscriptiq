@@ -40,6 +40,7 @@ import {
   type AuthUser,
   type Subscription,
 } from '../services/api';
+import type { PaymentGatewayOptions } from '../components/payment/PaymentGatewayModal';
 
 export type NavTabId =
   | 'dashboard'
@@ -128,6 +129,18 @@ interface AppContextType {
   auditLogs: AuditLog[];
   adminStats: typeof mockAdminStats;
 
+  // Payment Gateway
+  isPaymentGatewayOpen: boolean;
+  paymentGatewayOptions: PaymentGatewayOptions | null;
+  openPaymentGateway: (options: PaymentGatewayOptions) => void;
+  closePaymentGateway: () => void;
+  handlePaymentSuccess: (result: {
+    transactionId: string;
+    receiptNumber: string;
+    amount: number;
+    paymentMethod: string;
+  }) => Promise<void>;
+
   // Toast System
   toasts: Toast[];
   showToast: (message: string, type?: Toast['type']) => void;
@@ -177,6 +190,51 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [currentInvoice, setCurrentInvoice] = useState<Invoice>(mockCurrentInvoice);
   const [billingHistory, setBillingHistory] = useState<Invoice[]>(mockBillingHistory);
   const [selectedInvoiceForModal, setSelectedInvoiceForModal] = useState<Invoice | null>(null);
+
+  // Global Payment Gateway Modal State
+  const [isPaymentGatewayOpen, setIsPaymentGatewayOpen] = useState(false);
+  const [paymentGatewayOptions, setPaymentGatewayOptions] = useState<PaymentGatewayOptions | null>(null);
+
+  const openPaymentGateway = (options: PaymentGatewayOptions) => {
+    setPaymentGatewayOptions(options);
+    setIsPaymentGatewayOpen(true);
+  };
+
+  const closePaymentGateway = () => {
+    setIsPaymentGatewayOpen(false);
+    setPaymentGatewayOptions(null);
+  };
+
+  const handlePaymentSuccess = async (result: {
+    transactionId: string;
+    receiptNumber: string;
+    amount: number;
+    paymentMethod: string;
+  }) => {
+    try {
+      if (paymentGatewayOptions?.invoiceId) {
+        await payInvoice(paymentGatewayOptions.invoiceId);
+      }
+      if (paymentGatewayOptions?.planName) {
+        await upgradePlan(paymentGatewayOptions.planName as PlanTier);
+      }
+      // Add notification matching Slide 13 of PDF
+      const notif: AlertNotification = {
+        id: `notif_${Date.now()}`,
+        type: 'Billing',
+        message: `Payment received: ₹${result.amount.toLocaleString()} received via ${result.paymentMethod}`,
+        timestamp: 'Just now',
+        unread: true,
+      };
+      setNotifications((prev) => [notif, ...prev]);
+      showToast(
+        `Payment of ₹${result.amount.toLocaleString()} authorized via ${result.paymentMethod}!`,
+        'success'
+      );
+    } catch (e) {
+      console.error('Payment callback error', e);
+    }
+  };
 
   // Customers state
   const [customers, setCustomers] = useState<Customer[]>(mockCustomers);
@@ -702,6 +760,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         unreadCount,
         auditLogs,
         adminStats,
+        isPaymentGatewayOpen,
+        paymentGatewayOptions,
+        openPaymentGateway,
+        closePaymentGateway,
+        handlePaymentSuccess,
         toasts,
         showToast,
         removeToast,

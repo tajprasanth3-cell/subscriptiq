@@ -2,10 +2,19 @@ import { useEffect, useRef, type ReactNode } from 'react';
 import { Sidebar } from './Sidebar';
 import { ToastContainer } from '../common/ToastContainer';
 import { InvoiceModal } from '../billing/InvoiceModal';
+import { PaymentGatewayModal } from '../payment/PaymentGatewayModal';
 import { useApp } from '../../context/AppContext';
 
 export const AppLayout = ({ children }: { children: ReactNode }) => {
-  const { selectedInvoiceForModal, setSelectedInvoiceForModal, currentTab } = useApp();
+  const {
+    selectedInvoiceForModal,
+    setSelectedInvoiceForModal,
+    currentTab,
+    isPaymentGatewayOpen,
+    paymentGatewayOptions,
+    closePaymentGateway,
+    handlePaymentSuccess,
+  } = useApp();
   const mainRef = useRef<HTMLElement>(null);
 
   // When switching pages/tabs, always open scrolled to the very top
@@ -33,6 +42,14 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
           onClose={() => setSelectedInvoiceForModal(null)}
         />
       )}
+
+      {/* Global Secure Payment Gateway Modal */}
+      <PaymentGatewayModal
+        isOpen={isPaymentGatewayOpen}
+        options={paymentGatewayOptions}
+        onClose={closePaymentGateway}
+        onSuccess={handlePaymentSuccess}
+      />
 
       {/* Global Toast System */}
       <ToastContainer />

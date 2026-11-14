@@ -50,6 +50,9 @@ export const PlansPage = () => {
     payInvoice,
     setCurrentTab,
     unreadCount,
+    openPaymentGateway,
+    organizationName,
+    currentUserEmail,
   } = useApp();
 
   const [confirmCancelOpen, setConfirmCancelOpen] = useState(false);
@@ -95,9 +98,20 @@ export const PlansPage = () => {
 
   const handleOpenCheckout = (plan: Plan) => {
     setSelectedPlanForCheckout(plan);
-    setCheckoutStep('review');
-    setPaymentMethod('upi');
-    setIsCheckoutModalOpen(true);
+    const calculatedPrice =
+      billingCycle === 'annual'
+        ? Math.round(plan.price * 0.8 * 12)
+        : plan.price;
+
+    openPaymentGateway({
+      itemTitle: `${plan.name} Subscription Plan`,
+      itemSubtitle: `${billingCycle === 'annual' ? 'Annual (-20% discount)' : 'Monthly'} metered billing tier`,
+      amount: calculatedPrice,
+      currency: plan.currency || '₹',
+      planName: plan.name,
+      customerName: organizationName || 'TechCorp',
+      customerEmail: currentUserEmail,
+    });
   };
 
   const handleProcessPayment = async () => {

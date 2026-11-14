@@ -471,6 +471,77 @@ export async function mockApiHandler<T>(path: string, options: RequestInit = {})
     return invoice as T;
   }
 
+  // 5b. Payments endpoints
+  if (pathname === '/payments/methods' && method === 'GET') {
+    return {
+      gateways: [
+        { id: 'upi', name: 'UPI / Instant QR' },
+        { id: 'card', name: 'Credit / Debit Cards' },
+        { id: 'netbanking', name: 'Net Banking' },
+        { id: 'wave', name: 'Wave / Digital Wallets' },
+      ],
+      currency: '₹',
+    } as T;
+  }
+
+  if (pathname === '/payments/create-order' && method === 'POST') {
+    const body = options.body ? JSON.parse(options.body as string) : {};
+    return {
+      orderId: `order_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      amount: Number(body.amount) || 1499,
+      currency: '₹',
+      keyId: 'rzp_live_subscriptiq_mock2026',
+    } as T;
+  }
+
+  if (pathname === '/payments/verify' && method === 'POST') {
+    const body = options.body ? JSON.parse(options.body as string) : {};
+    const amount = Number(body.amount) || 1499;
+    const methodStr = (body.paymentMethod || 'UPI').toUpperCase();
+    const txnId = `txn_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+    const receiptNum = `REC-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`;
+
+    if (body.invoiceId) {
+      if (body.invoiceId === 'inv_current') {
+        currentInvoiceState = { ...currentInvoiceState, status: 'Paid', paymentMethod: methodStr };
+      } else {
+        invoicesState = invoicesState.map((inv) =>
+          inv.id === body.invoiceId || inv.invoiceNumber === body.invoiceId
+            ? { ...inv, status: 'Paid', paymentMethod: methodStr }
+            : inv
+        );
+      }
+    }
+
+    if (body.planName) {
+      subscriptionState = {
+        ...subscriptionState,
+        plan: body.planName,
+        status: 'active',
+        renewalDate: 'Apr 30, 2026',
+      };
+    }
+
+    // Add notification
+    notificationsState.unshift({
+      id: `notif_${Date.now()}`,
+      type: 'Billing',
+      message: `Payment received: ₹${amount.toLocaleString()} received via ${methodStr}`,
+      timestamp: 'Just now',
+      unread: true,
+    });
+
+    return {
+      success: true,
+      transactionId: txnId,
+      orderId: body.orderId || 'order_mock',
+      receiptNumber: receiptNum,
+      amount,
+      currency: '₹',
+      paymentMethod: methodStr,
+    } as T;
+  }
+
   // 6. Customers endpoints
   if (pathname === '/customers' && method === 'GET') {
     const result: Paginated<Customer> = {

@@ -4,7 +4,7 @@ import { Header } from '../components/layout/Header';
 import { RevenueChart } from '../components/dashboard/RevenueChart';
 import { PlanDistributionChart } from '../components/dashboard/PlanDistributionChart';
 import { useApp } from '../context/AppContext';
-import { ShieldCheck, ArrowUpRight, Rocket, Calendar, ArrowRight } from 'lucide-react';
+import { ShieldCheck, ArrowUpRight, Rocket, Calendar, ArrowRight, Users, Layers, Activity, Receipt, Bell } from 'lucide-react';
 
 export const AdminPage = () => {
   const { adminStats, auditLogs, role, setCurrentTab } = useApp();
@@ -112,6 +112,79 @@ export const AdminPage = () => {
             </div>
             <p className="text-xs text-slate-400 mt-4">100% idempotent check rate</p>
           </Card>
+        </div>
+
+        {/* Full Workflow Access (Admin can manage every module) */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h3 className="font-bold text-base text-slate-900">Platform Workflows</h3>
+              <p className="text-xs text-slate-400">
+                Full management access across every module from the admin console
+              </p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            {[
+              {
+                id: 'customers' as const,
+                label: 'Customers',
+                description: 'Create and manage organizations',
+                icon: Users,
+                color: 'text-indigo-600 bg-indigo-50 border-indigo-100',
+              },
+              {
+                id: 'plans' as const,
+                label: 'Plans',
+                description: 'Maintain the global plan catalog',
+                icon: Layers,
+                color: 'text-violet-600 bg-violet-50 border-violet-100',
+              },
+              {
+                id: 'usage' as const,
+                label: 'Usage',
+                description: 'Monitor metered events and quotas',
+                icon: Activity,
+                color: 'text-emerald-600 bg-emerald-50 border-emerald-100',
+              },
+              {
+                id: 'billing' as const,
+                label: 'Billing',
+                description: 'Review invoices and payments',
+                icon: Receipt,
+                color: 'text-amber-600 bg-amber-50 border-amber-100',
+              },
+              {
+                id: 'notifications' as const,
+                label: 'Alerts',
+                description: 'System and usage notifications',
+                icon: Bell,
+                color: 'text-rose-600 bg-rose-50 border-rose-100',
+              },
+            ].map((workflow) => {
+              const Icon = workflow.icon;
+              return (
+                <button
+                  key={workflow.id}
+                  onClick={() => setCurrentTab(workflow.id)}
+                  className="text-left p-4 rounded-2xl bg-white border border-slate-200/80 hover:border-indigo-300 hover:shadow-sm transition-all cursor-pointer group"
+                >
+                  <div
+                    className={`w-9 h-9 rounded-xl border flex items-center justify-center mb-3 ${workflow.color}`}
+                  >
+                    <Icon className="w-4 h-4" />
+                  </div>
+                  <p className="font-bold text-sm text-slate-900">{workflow.label}</p>
+                  <p className="text-[11px] text-slate-500 mt-1 leading-snug">
+                    {workflow.description}
+                  </p>
+                  <span className="mt-3 inline-flex items-center gap-1 text-[11px] font-semibold text-indigo-600 group-hover:text-indigo-700">
+                    Open <ArrowRight className="w-3 h-3" />
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* Middle Charts Split Row (Slide 6) */}

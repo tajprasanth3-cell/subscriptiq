@@ -24,7 +24,14 @@ const badgeVariant = (status: string): BadgeVariant => {
 };
 
 export const BillingPage = () => {
-  const { currentInvoice, billingHistory, downloadInvoicePDF, payInvoice, role, organizationName } = useApp();
+  const {
+    currentInvoice,
+    billingHistory,
+    downloadInvoicePDF,
+    role,
+    organizationName,
+    openPaymentGateway,
+  } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
   const [activePage, setActivePage] = useState(1);
 
@@ -195,7 +202,7 @@ export const BillingPage = () => {
                   variant="outline"
                   fullWidth
                   size="md"
-                  icon={<CheckCircle className="w-4 h-4" />}
+                  icon={<CheckCircle className="w-4 h-4 text-emerald-600" />}
                   disabled
                 >
                   Invoice paid
@@ -205,10 +212,19 @@ export const BillingPage = () => {
                   variant="primary"
                   fullWidth
                   size="md"
-                  icon={<CheckCircle className="w-4 h-4" />}
-                  onClick={() => payInvoice(currentInvoice.id)}
+                  icon={<CreditCard className="w-4 h-4" />}
+                  onClick={() =>
+                    openPaymentGateway({
+                      itemTitle: `Invoice ${currentInvoice.invoiceNumber}`,
+                      itemSubtitle: `Billing period ${currentInvoice.period}`,
+                      amount: currentInvoice.total,
+                      currency: currentInvoice.currency,
+                      invoiceId: currentInvoice.id,
+                      customerName: currentInvoice.customer || organizationName,
+                    })
+                  }
                 >
-                  Mark as paid
+                  Pay via Gateway ({formatCurrency(currentInvoice.total, currentInvoice.currency)})
                 </Button>
               )}
               <Button
@@ -301,11 +317,20 @@ export const BillingPage = () => {
                           </button>
                           {hist.status !== 'Paid' && (
                             <button
-                              onClick={() => payInvoice(hist.id)}
+                              onClick={() =>
+                                openPaymentGateway({
+                                  itemTitle: `Invoice ${hist.invoiceNumber}`,
+                                  itemSubtitle: `Customer: ${hist.customer || organizationName}`,
+                                  amount: hist.total,
+                                  currency: hist.currency,
+                                  invoiceId: hist.id,
+                                  customerName: hist.customer || organizationName,
+                                })
+                              }
                               className="p-1.5 text-slate-400 hover:text-emerald-600 rounded-lg hover:bg-slate-100 cursor-pointer"
-                              title="Mark as paid"
+                              title="Pay invoice via Gateway"
                             >
-                              <CheckCircle className="w-4 h-4" />
+                              <CreditCard className="w-4 h-4" />
                             </button>
                           )}
                         </div>

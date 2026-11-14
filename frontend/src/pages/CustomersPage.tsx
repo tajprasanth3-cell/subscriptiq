@@ -1,6 +1,5 @@
 import { useState, type FormEvent } from 'react';
 import { Card } from '../components/common/Card';
-import { Badge } from '../components/common/Badge';
 import { Button } from '../components/common/Button';
 import { ProgressBar } from '../components/common/ProgressBar';
 import { Header } from '../components/layout/Header';
@@ -49,16 +48,6 @@ export const CustomersPage = () => {
     setShowAddModal(false);
   };
 
-  const cycleStatus = (id: string, current: Customer['status']) => {
-    const nextStatus: Record<Customer['status'], Customer['status']> = {
-      Active: 'Near limit',
-      'Near limit': 'Suspended',
-      Suspended: 'Active',
-      Pending: 'Active',
-    };
-    updateCustomerStatus(id, nextStatus[current]);
-  };
-
   return (
     <div className="flex-1 flex flex-col">
       <Header
@@ -100,7 +89,7 @@ export const CustomersPage = () => {
                 <tr>
                   <th className="py-3 px-6">Organization</th>
                   <th className="py-3 px-6">Plan</th>
-                  <th className="py-3 px-6">Status (Click to toggle)</th>
+                  <th className="py-3 px-6">Status</th>
                   <th className="py-3 px-6">Usage vs limit</th>
                   <th className="py-3 px-6">Renewal</th>
                 </tr>
@@ -114,7 +103,7 @@ export const CustomersPage = () => {
                       ? 'indigo'
                       : 'emerald';
 
-                  return (
+                    return (
                     <tr key={cust.id} className="hover:bg-slate-50/80 transition-colors">
                       <td className="py-4 px-6">
                         <div className="font-bold text-slate-900">{cust.name}</div>
@@ -124,23 +113,19 @@ export const CustomersPage = () => {
                         <span className="font-semibold text-slate-800">{cust.plan}</span>
                       </td>
                       <td className="py-4 px-6">
-                        <button
-                          onClick={() => cycleStatus(cust.id, cust.status)}
-                          className="cursor-pointer hover:opacity-80 transition-opacity"
-                          title="Click to toggle status"
+                        <select
+                          value={cust.status}
+                          onChange={(e) =>
+                            updateCustomerStatus(cust.id, e.target.value as Customer['status'])
+                          }
+                          className="px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600"
+                          title="Update customer status"
                         >
-                          <Badge
-                            variant={
-                              cust.status === 'Active'
-                                ? 'active'
-                                : cust.status === 'Near limit'
-                                ? 'near_limit'
-                                : 'suspended'
-                            }
-                          >
-                            {cust.status}
-                          </Badge>
-                        </button>
+                          <option value="Active">Active</option>
+                          <option value="Near limit">Near limit</option>
+                          <option value="Suspended">Suspended</option>
+                          <option value="Pending">Pending</option>
+                        </select>
                       </td>
                       <td className="py-4 px-6 w-56">
                         <div className="space-y-1.5">

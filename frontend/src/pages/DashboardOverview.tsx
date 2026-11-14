@@ -5,7 +5,7 @@ import { ProgressBar } from '../components/common/ProgressBar';
 import { Header } from '../components/layout/Header';
 import { ApiUsageTrendChart } from '../components/dashboard/ApiUsageTrendChart';
 import { useApp } from '../context/AppContext';
-import { ArrowUpRight, Zap, Download } from 'lucide-react';
+import { ArrowUpRight, Zap, Download, CreditCard } from 'lucide-react';
 import { formatCurrency } from '../utils/formatters';
 
 export const DashboardOverview = () => {
@@ -17,6 +17,8 @@ export const DashboardOverview = () => {
     notifications,
     setCurrentTab,
     downloadInvoicePDF,
+    openPaymentGateway,
+    organizationName,
   } = useApp();
 
   return (
@@ -188,8 +190,24 @@ export const DashboardOverview = () => {
 
             <div className="flex flex-wrap items-center gap-3 pt-4">
               <Button
-                onClick={() => setCurrentTab('usage')}
+                onClick={() =>
+                  openPaymentGateway({
+                    itemTitle: `Current Invoice (${currentInvoice.invoiceNumber})`,
+                    itemSubtitle: `Billing period ${currentInvoice.period}`,
+                    amount: currentInvoice.total,
+                    currency: currentInvoice.currency,
+                    invoiceId: currentInvoice.id,
+                    customerName: currentInvoice.customer || organizationName,
+                  })
+                }
                 variant="primary"
+                icon={<CreditCard className="w-4 h-4" />}
+              >
+                Pay Bill ({formatCurrency(currentInvoice.total)})
+              </Button>
+              <Button
+                onClick={() => setCurrentTab('usage')}
+                variant="outline"
                 icon={<Zap className="w-4 h-4" />}
               >
                 View usage

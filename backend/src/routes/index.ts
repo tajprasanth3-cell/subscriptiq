@@ -6,6 +6,7 @@ import { billingRouter } from './billing.routes';
 import { customersRouter } from './customers.routes';
 import { healthRouter } from './health.routes';
 import { plansRouter } from './plans.routes';
+import { paymentsRouter } from './payments.routes';
 import { subscriptionRouter } from './subscription.routes';
 import { usageRouter } from './usage.routes';
 
@@ -14,6 +15,7 @@ export const apiRouter = Router();
 apiRouter.use('/health', healthRouter);
 apiRouter.use('/auth', authRouter);
 apiRouter.use('/plans', plansRouter);
+apiRouter.use('/payments', paymentsRouter);
 apiRouter.use('/subscription', subscriptionRouter);
 apiRouter.use('/usage', usageRouter);
 apiRouter.use('/billing', billingRouter);
