@@ -10,8 +10,14 @@ import { apiRouter } from './routes';
 function buildCorsOptions(): CorsOptions {
   return {
     origin(origin, callback) {
-      // Allow same-origin / non-browser clients (no Origin header).
-      if (!origin || env.corsOrigins.includes(origin)) {
+      // Allow same-origin / non-browser clients (no Origin header) or configured origins.
+      if (
+        !origin ||
+        env.corsOrigins.includes('*') ||
+        env.corsOrigins.includes(origin) ||
+        origin.endsWith('.vercel.app') ||
+        origin.includes('localhost')
+      ) {
         callback(null, true);
         return;
       }

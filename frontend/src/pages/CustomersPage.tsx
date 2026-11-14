@@ -18,6 +18,7 @@ export const CustomersPage = () => {
   const [newOrgName, setNewOrgName] = useState('');
   const [newOrgPlan, setNewOrgPlan] = useState<PlanTier>('Basic');
   const [newOrgEmail, setNewOrgEmail] = useState('');
+  const [newOrgMobile, setNewOrgMobile] = useState('');
 
   const filteredCustomers = customers.filter((c) => {
     const matchesStatus = statusFilter === 'All' || c.status === statusFilter;
@@ -39,10 +40,12 @@ export const CustomersPage = () => {
       usagePercentage: Math.floor(10 + Math.random() * 30),
       renewalDate: 'May 30, 2026',
       email: newOrgEmail.trim() || `${newOrgName.toLowerCase().replace(/\s+/g, '')}@example.com`,
+      mobile: newOrgMobile.trim() || undefined,
     });
 
     setNewOrgName('');
     setNewOrgEmail('');
+    setNewOrgMobile('');
     setShowAddModal(false);
   };
 
@@ -207,6 +210,20 @@ export const CustomersPage = () => {
                   value={newOrgEmail}
                   onChange={(e) => setNewOrgEmail(e.target.value)}
                   placeholder="admin@waynecorp.com"
+                  className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+                  Mobile Number
+                </label>
+                <input
+                  type="tel"
+                  inputMode="numeric"
+                  value={newOrgMobile}
+                  onChange={(e) => setNewOrgMobile(e.target.value)}
+                  placeholder="e.g. 9876543210"
                   className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600"
                 />
               </div>

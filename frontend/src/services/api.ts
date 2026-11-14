@@ -199,11 +199,17 @@ export const api = {
         auth: false,
         body: JSON.stringify({ email, password, role }),
       }),
-    register: (organizationName: string, email: string, password: string, role: Role = 'Business Owner') =>
+    register: (
+      organizationName: string,
+      email: string,
+      password: string,
+      role: Role = 'Business Owner',
+      mobile?: string
+    ) =>
       request<AuthResult>('/auth/register', {
         method: 'POST',
         auth: false,
-        body: JSON.stringify({ organizationName, email, password, role }),
+        body: JSON.stringify({ organizationName, email, password, role, mobile }),
       }),
     resetPassword: (email: string, newPassword: string) =>
       request<AuthResult>('/auth/reset-password', {

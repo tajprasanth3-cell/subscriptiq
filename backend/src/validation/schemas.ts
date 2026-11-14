@@ -35,6 +35,7 @@ export const registerSchema = z.object({
   email: z.string().email('A valid email is required'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
   name: z.string().min(2).optional(),
+  mobile: z.string().optional(),
   role: z.enum(['Business Owner', 'Customer']).optional(),
 });
 
@@ -83,6 +84,7 @@ export const usageEventsQuerySchema = paginationSchema.extend({
 export const createCustomerSchema = z.object({
   name: z.string().min(1, 'Organization name is required'),
   email: z.string().email('A valid email is required'),
+  mobile: z.string().optional(),
   plan: z.string().min(1, 'Plan tier is required'),
   status: customerStatusEnum.default('Active'),
   usagePercentage: z.coerce.number().min(0).max(100).optional(),

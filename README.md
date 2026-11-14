@@ -1,9 +1,11 @@
 # SubscriptIQ — Metered Subscription & Usage Ingestion Platform
 
-[![Deploy with Vercel](https://img.shields.io/badge/Live_Demo-Vercel-black?style=for-the-badge&logo=vercel)](https://frontend-eta-murex-51.vercel.app)
+[![Deploy with Vercel](https://img.shields.io/badge/Live_Frontend-Vercel-black?style=for-the-badge&logo=vercel)](https://frontend-eta-murex-51.vercel.app)
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/tajprasanth3-cell/subscriptiq)
 [![GitHub Repository](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github)](https://github.com/tajprasanth3-cell/subscriptiq)
 
-> 🌐 **Live Web Application**: [https://frontend-eta-murex-51.vercel.app](https://frontend-eta-murex-51.vercel.app)
+> 🌐 **Live Web Application (Frontend)**: [https://frontend-eta-murex-51.vercel.app](https://frontend-eta-murex-51.vercel.app)  
+> ⚙️ **Backend API Blueprint**: [render.yaml](render.yaml) (Ready to deploy on Render)
 
 SubscriptIQ is a modern, high-precision SaaS metered subscription management and idempotent usage event tracking platform. It enables multi-tenant organizations to monitor resource usage in real time, enforce plan quotas, bill overages predictably, and manage complete subscription lifecycles.
 
@@ -68,6 +70,37 @@ npm run build
 ```
 
 The optimized static production assets will be built into `frontend/dist/`.
+
+---
+
+## ☁️ Deploy Backend to Render
+
+You can deploy the backend Express API to Render in 1 minute using the built-in [render.yaml](render.yaml) blueprint:
+
+### Option 1: Automatic Blueprint (Recommended)
+1. Go to your [Render Dashboard](https://dashboard.render.com).
+2. Click **New +** > **Blueprint**.
+3. Connect your GitHub repository `https://github.com/tajprasanth3-cell/subscriptiq`.
+4. Render will automatically detect `render.yaml` and configure the build and start commands.
+5. Click **Apply**.
+
+### Option 2: Manual Web Service
+1. In [Render Dashboard](https://dashboard.render.com), click **New +** > **Web Service**.
+2. Select your repository: `tajprasanth3-cell/subscriptiq`.
+3. Configure the following settings:
+   - **Name**: `subscriptiq-backend`
+   - **Root Directory**: `backend`
+   - **Environment**: `Node`
+   - **Build Command**: `npm install && npm run build`
+   - **Start Command**: `npm start`
+   - **Health Check Path**: `/api/health`
+4. Add the following **Environment Variables**:
+   - `NODE_ENV`: `production`
+   - `PORT`: `10000`
+   - `CORS_ORIGIN`: `https://frontend-eta-murex-51.vercel.app,http://localhost:5173`
+   - `JWT_SECRET`: *(Click Generate or enter a strong secret)*
+   - `MONGODB_URI`: *(Optional: your MongoDB Atlas connection string; if omitted, runs in built-in persistent store mode)*
+5. Click **Create Web Service**.
 
 ---
 

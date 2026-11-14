@@ -85,6 +85,7 @@ export interface Customer {
   usagePercentage: number;
   renewalDate: string;
   email: string;
+  mobile?: string;
 }
 
 export interface AlertNotification {

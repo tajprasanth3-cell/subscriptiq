@@ -99,6 +99,7 @@ export interface Customer {
   usagePercentage: number;
   renewalDate: string;
   email: string;
+  mobile?: string;
 }
 
 export type AlertType = 'Threshold' | 'Renewal' | 'Billing' | 'System';
@@ -145,6 +146,7 @@ export interface User {
   role: Role;
   organizationId: string;
   passwordHash: string;
+  mobile?: string;
   createdAt: string;
 }
 

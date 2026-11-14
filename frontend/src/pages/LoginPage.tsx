@@ -45,6 +45,7 @@ export const LoginPage = () => {
   const [regRole, setRegRole] = useState<'Business Owner' | 'Customer'>('Business Owner');
   const [regOrgName, setRegOrgName] = useState('');
   const [regEmail, setRegEmail] = useState('');
+  const [regMobile, setRegMobile] = useState('');
   const [regPassword, setRegPassword] = useState('');
   const [regError, setRegError] = useState('');
 
@@ -109,15 +110,24 @@ export const LoginPage = () => {
       setRegError('Please enter a valid email address.');
       return;
     }
+    if (!regMobile.trim()) {
+      setRegError('Please enter your mobile number.');
+      return;
+    }
+    if (!/^\d{10}$/.test(regMobile.replace(/\D/g, ''))) {
+      setRegError('Please enter a valid 10-digit mobile number.');
+      return;
+    }
     if (regPassword.length < 6) {
       setRegError('Password must be at least 6 characters long.');
       return;
     }
 
     setShowRegisterModal(false);
-    register(regOrgName.trim(), regEmail.trim(), regPassword, regRole);
+    register(regOrgName.trim(), regEmail.trim(), regPassword, regRole, regMobile.trim());
     setRegOrgName('');
     setRegEmail('');
+    setRegMobile('');
     setRegPassword('');
   };
 
@@ -557,6 +567,21 @@ export const LoginPage = () => {
                   placeholder={
                     regRole === 'Customer' ? 'alex@techcorp.io' : 'founder@stark.com'
                   }
+                  className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+                  Mobile Number
+                </label>
+                <input
+                  type="tel"
+                  required
+                  inputMode="numeric"
+                  value={regMobile}
+                  onChange={(e) => setRegMobile(e.target.value)}
+                  placeholder="e.g. 9876543210"
                   className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm"
                 />
               </div>

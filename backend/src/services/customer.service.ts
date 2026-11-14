@@ -7,6 +7,7 @@ import { recordAudit, type AuditActor } from './audit.service';
 export interface CreateCustomerInput {
   name: string;
   email: string;
+  mobile?: string;
   plan: string;
   status?: CustomerStatus;
   usagePercentage?: number;
@@ -77,6 +78,7 @@ export function createCustomer(
     usagePercentage: input.usagePercentage ?? Math.floor(10 + Math.random() * 30),
     renewalDate: input.renewalDate ?? 'May 30, 2026',
     email,
+    mobile: input.mobile?.trim() || undefined,
   };
   store.data.customers.unshift(customer);
   recordAudit(store, actor, `Registered new customer: ${customer.name}`);

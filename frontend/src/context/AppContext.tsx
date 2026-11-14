@@ -64,7 +64,13 @@ interface AppContextType {
   organizationName: string;
   login: (email: string, password: string, role?: Role) => Promise<boolean>;
   resetPassword: (email: string, newPassword: string) => Promise<boolean>;
-  register: (organizationName: string, email: string, password: string, roleToRegister?: Role) => void;
+  register: (
+    organizationName: string,
+    email: string,
+    password: string,
+    roleToRegister?: Role,
+    mobile?: string
+  ) => void;
   logout: () => void;
   toggleRole: () => void;
   setRole: (role: Role) => void;
@@ -364,7 +370,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     organizationNameInput: string,
     email: string,
     password: string,
-    roleToRegister: Role = 'Business Owner'
+    roleToRegister: Role = 'Business Owner',
+    mobile?: string
   ) => {
     void (async () => {
       try {
@@ -372,7 +379,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           organizationNameInput,
           email,
           password,
-          roleToRegister
+          roleToRegister,
+          mobile
         );
         setToken(result.token);
         applyUser(result.user);

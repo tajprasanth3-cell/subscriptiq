@@ -17,6 +17,7 @@ export interface RegisterInput {
   email: string;
   password: string;
   name?: string;
+  mobile?: string;
   role?: Role;
 }
 
@@ -149,6 +150,7 @@ export function register(store: Store, input: RegisterInput): AuthResult {
     role,
     organizationId: organization.id,
     passwordHash: hashPassword(input.password),
+    mobile: input.mobile?.trim() || undefined,
     createdAt: now,
   };
 
@@ -162,6 +164,7 @@ export function register(store: Store, input: RegisterInput): AuthResult {
     usagePercentage: 0,
     renewalDate: 'May 30, 2026',
     email,
+    mobile: input.mobile?.trim() || undefined,
   });
   recordAudit(
     store,
