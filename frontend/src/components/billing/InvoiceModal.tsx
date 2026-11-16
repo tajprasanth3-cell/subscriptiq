@@ -1,9 +1,10 @@
 
-import { X, Printer, Download, Building2, CheckCircle2 } from 'lucide-react';
+import { X, Download, Building2, CheckCircle2 } from 'lucide-react';
 import type { Invoice } from '../../types';
 import { Button } from '../common/Button';
 import { Badge } from '../common/Badge';
 import { formatCurrency } from '../../utils/formatters';
+import { downloadInvoicePdf } from '../../utils/invoicePdf';
 
 interface InvoiceModalProps {
   invoice: Invoice;
@@ -11,8 +12,8 @@ interface InvoiceModalProps {
 }
 
 export const InvoiceModal = ({ invoice, onClose }: InvoiceModalProps) => {
-  const handlePrint = () => {
-    window.print();
+  const handleDownload = () => {
+    downloadInvoicePdf(invoice);
   };
 
   return (
@@ -30,10 +31,10 @@ export const InvoiceModal = ({ invoice, onClose }: InvoiceModalProps) => {
             <Button
               variant="outline"
               size="sm"
-              icon={<Printer className="w-3.5 h-3.5" />}
-              onClick={handlePrint}
+              icon={<Download className="w-3.5 h-3.5" />}
+              onClick={handleDownload}
             >
-              Print / Save PDF
+              Download PDF
             </Button>
             <button
               onClick={onClose}
@@ -171,7 +172,7 @@ export const InvoiceModal = ({ invoice, onClose }: InvoiceModalProps) => {
           <Button variant="outline" onClick={onClose}>
             Close
           </Button>
-          <Button variant="primary" icon={<Download className="w-4 h-4" />} onClick={handlePrint}>
+          <Button variant="primary" icon={<Download className="w-4 h-4" />} onClick={handleDownload}>
             Download Receipt
           </Button>
         </div>

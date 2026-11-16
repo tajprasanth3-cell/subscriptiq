@@ -72,11 +72,12 @@ export const CustomersPage = () => {
             </select>
             <Button
               variant="primary"
-              size="md"
+              size="sm"
               icon={<UserPlus className="w-4 h-4" />}
               onClick={() => setShowAddModal(true)}
             >
-              Add customer
+              <span className="hidden sm:inline">Add customer</span>
+              <span className="sm:hidden">Add</span>
             </Button>
           </div>
         }

@@ -8,7 +8,6 @@ import {
   Bell,
   ShieldCheck,
   Building2,
-  ChevronRight,
   X,
   Gauge,
   History,
@@ -23,7 +22,6 @@ export const Sidebar = () => {
     setCurrentTab,
     organizationName,
     role,
-    toggleRole,
     unreadCount,
     isMobileMenuOpen,
     setIsMobileMenuOpen,
@@ -182,14 +180,10 @@ export const Sidebar = () => {
 
       {/* Tenant / Organization Footer Card */}
       <div className="p-4 border-t border-slate-100 shrink-0 mt-auto bg-white">
-        <div
-          onClick={toggleRole}
-          className="p-3 bg-slate-50 hover:bg-slate-100/80 rounded-2xl border border-slate-200/70 transition-all cursor-pointer group"
-          title="Click to toggle between roles"
-        >
+        <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200/70">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-8 h-8 rounded-xl bg-white border border-slate-200 shadow-xs flex items-center justify-center text-slate-600 group-hover:text-indigo-600 shrink-0">
+              <div className="w-8 h-8 rounded-xl bg-white border border-slate-200 shadow-xs flex items-center justify-center text-indigo-600 shrink-0">
                 <Building2 className="w-4 h-4" />
               </div>
               <div className="min-w-0 flex-1">
@@ -204,11 +198,11 @@ export const Sidebar = () => {
                 </p>
                 <div className="flex items-center gap-1.5 mt-0.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-                  <p className="text-[11px] text-slate-500 font-medium truncate">Role: {role}</p>
+                  <p className="text-[11px] text-slate-500 font-medium truncate">{role}</p>
                 </div>
               </div>
             </div>
-            <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-slate-600 group-hover:translate-x-0.5 transition-all shrink-0 ml-1" />
+            <div className="w-2 h-2 rounded-full bg-emerald-400 shrink-0 ml-1" title="Online" />
           </div>
         </div>
       </div>

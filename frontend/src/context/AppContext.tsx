@@ -517,11 +517,21 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const refreshAuditLogs = async () => {
+    try {
+      const auditPage = await api.admin.auditLogs({ page: 1, pageSize: 100 });
+      setAuditLogs(auditPage.items);
+    } catch {
+      // Non-admin roles might not have direct audit route access
+    }
+  };
+
   const createPlan = (newPlan: Omit<Plan, 'id'>) => {
     void (async () => {
       try {
         await api.plans.create(newPlan);
         setPlansList(await api.plans.list());
+        await refreshAuditLogs();
         showToast(`New tier "${newPlan.name}" created!`, 'success');
       } catch (error) {
         fail(error);
@@ -534,6 +544,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       try {
         await api.plans.remove(id);
         setPlansList(await api.plans.list());
+        await refreshAuditLogs();
         showToast('Plan deleted from catalog.', 'info');
       } catch (error) {
         fail(error);
@@ -545,6 +556,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     void (async () => {
       try {
         applySubscription(await api.subscription.cancel());
+        await refreshAuditLogs();
         showToast('Subscription cancelled. Active until the end of the billing period.', 'warning');
       } catch (error) {
         fail(error);
@@ -556,6 +568,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     void (async () => {
       try {
         applySubscription(await api.subscription.reactivate());
+        await refreshAuditLogs();
         showToast('Subscription reactivated successfully!', 'success');
       } catch (error) {
         fail(error);
@@ -567,6 +580,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     void (async () => {
       try {
         applySubscription(await api.subscription.setStatus(status));
+        await refreshAuditLogs();
         showToast(`Subscription status set to ${status}.`, 'info');
       } catch (error) {
         fail(error);
@@ -645,6 +659,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         await api.customers.create(cust);
         const page = await api.customers.list({ page: 1, pageSize: 100 });
         setCustomers(page.items);
+        await refreshAuditLogs();
         showToast(`Customer "${cust.name}" registered successfully!`, 'success');
       } catch (error) {
         fail(error);
@@ -658,6 +673,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         await api.customers.setStatus(id, status);
         const page = await api.customers.list({ page: 1, pageSize: 100 });
         setCustomers(page.items);
+        await refreshAuditLogs();
         showToast(`Updated customer status to "${status}"`, 'info');
       } catch (error) {
         fail(error);

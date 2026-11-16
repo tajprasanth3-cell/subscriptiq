@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import clsx from 'clsx';
 import { Button } from '../common/Button';
+import { downloadReceiptPdf } from '../../utils/invoicePdf';
 
 export interface PaymentGatewayOptions {
   title?: string;
@@ -92,6 +93,21 @@ export const PaymentGatewayModal = ({
   const currency = options.currency || '₹';
   const amount = options.amount;
   const total = amount;
+
+  const handleDownloadReceipt = () => {
+    if (!receipt) return;
+    let methodLabel = 'UPI';
+    if (method === 'card') methodLabel = `Card (•••• ${cardNumber.slice(-4)})`;
+    if (method === 'netbanking') methodLabel = `Net Banking (${selectedBank})`;
+    if (method === 'wave') methodLabel = `Wallet (${selectedWallet})`;
+    downloadReceiptPdf({
+      ...receipt,
+      currency,
+      itemTitle: options.itemTitle,
+      itemSubtitle: options.itemSubtitle,
+      paymentMethod: methodLabel,
+    });
+  };
 
   const handleCardNumberChange = (val: string) => {
     const raw = val.replace(/\D/g, '').slice(0, 16);
@@ -300,7 +316,7 @@ export const PaymentGatewayModal = ({
                 fullWidth
                 size="md"
                 icon={<Download className="w-4 h-4" />}
-                onClick={() => window.print()}
+                onClick={handleDownloadReceipt}
               >
                 Download Receipt
               </Button>

@@ -173,6 +173,217 @@ img, svg {
   }
 }
 
+/* ============================================================
+   PAGE-BY-PAGE MEDIA QUERIES & RESPONSIVE BEHAVIOR
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   1. AUTH & LOGIN PAGE (LoginPage.tsx)
+   ------------------------------------------------------------ */
+@media screen and (max-width: 768px) {
+  .login-container {
+    flex-direction: column !important;
+    height: auto !important;
+    min-height: 100dvh !important;
+  }
+  .login-form-pane {
+    width: 100% !important;
+    padding: 1.25rem 1rem !important;
+  }
+  .login-hero-pane {
+    display: none !important;
+  }
+}
+
+/* ------------------------------------------------------------
+   2. BUSINESS & CUSTOMER DASHBOARD (Overview)
+   ------------------------------------------------------------ */
+@media screen and (max-width: 640px) {
+  .dashboard-kpi-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem !important;
+  }
+  .dashboard-meters-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem !important;
+  }
+  .dashboard-charts-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+}
+@media screen and (min-width: 641px) and (max-width: 1024px) {
+  .dashboard-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 1rem !important;
+  }
+  .dashboard-meters-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 1rem !important;
+  }
+}
+
+/* ------------------------------------------------------------
+   3. SUBSCRIPTION PLANS (PlansPage.tsx)
+   ------------------------------------------------------------ */
+@media screen and (max-width: 768px) {
+  .plans-tier-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+  .plans-lifecycle-stepper {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.5rem !important;
+  }
+  .plans-lifecycle-step {
+    width: 100% !important;
+    text-align: center !important;
+  }
+}
+@media screen and (min-width: 769px) and (max-width: 1024px) {
+  .plans-tier-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 1.25rem !important;
+  }
+}
+
+/* ------------------------------------------------------------
+   4. USAGE & METERING (UsagePage.tsx)
+   ------------------------------------------------------------ */
+@media screen and (max-width: 640px) {
+  .usage-kpi-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem !important;
+  }
+  .usage-trend-split {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+}
+@media screen and (min-width: 641px) and (max-width: 1024px) {
+  .usage-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 1rem !important;
+  }
+  .usage-trend-split {
+    grid-template-columns: 1fr !important;
+    gap: 1.25rem !important;
+  }
+}
+
+/* ------------------------------------------------------------
+   5. BILLING & INVOICES (BillingPage.tsx)
+   ------------------------------------------------------------ */
+@media screen and (max-width: 1024px) {
+  .billing-split-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1.25rem !important;
+  }
+}
+@media screen and (max-width: 640px) {
+  .billing-pagination {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 0.75rem !important;
+  }
+  .billing-pagination-buttons {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+}
+
+/* ------------------------------------------------------------
+   6. CUSTOMERS DIRECTORY (CustomersPage.tsx)
+   ------------------------------------------------------------ */
+@media screen and (max-width: 640px) {
+  .customers-header-actions {
+    flex-wrap: wrap !important;
+    gap: 0.5rem !important;
+    width: 100% !important;
+  }
+  .customers-filter-select {
+    flex: 1 !important;
+  }
+}
+
+/* ------------------------------------------------------------
+   7. LIMITS & ALERTS (AlertsPage.tsx)
+   ------------------------------------------------------------ */
+@media screen and (max-width: 1024px) {
+  .alerts-split-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1.25rem !important;
+  }
+}
+@media screen and (max-width: 640px) {
+  .alerts-notification-item {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.5rem !important;
+  }
+  .alerts-notification-time {
+    padding-left: 2.75rem !important;
+  }
+}
+
+/* ------------------------------------------------------------
+   8. ADMIN DASHBOARD & AUDIT LEDGER (AdminPage.tsx)
+   ------------------------------------------------------------ */
+@media screen and (max-width: 640px) {
+  .admin-kpi-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem !important;
+  }
+  .admin-workflows-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem !important;
+  }
+  .admin-charts-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+  .admin-audit-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+}
+@media screen and (min-width: 641px) and (max-width: 1024px) {
+  .admin-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 1rem !important;
+  }
+  .admin-workflows-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 0.75rem !important;
+  }
+  .admin-charts-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1.25rem !important;
+  }
+  .admin-audit-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1.25rem !important;
+  }
+}
+
+/* ------------------------------------------------------------
+   9. PAYMENT GATEWAY & INVOICE MODALS
+   ------------------------------------------------------------ */
+@media screen and (max-width: 768px) {
+  .payment-gateway-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .payment-gateway-summary {
+    border-right: none !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    padding: 1.25rem !important;
+  }
+  .payment-gateway-body {
+    padding: 1.25rem !important;
+  }
+}
+
 /* 4. Desktop Devices (1025px and wider) */
 @media screen and (min-width: 1025px) {
   .responsive-container {

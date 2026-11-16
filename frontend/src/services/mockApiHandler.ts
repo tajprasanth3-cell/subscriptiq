@@ -223,12 +223,35 @@ export async function mockApiHandler<T>(path: string, options: RequestInit = {})
       ...body,
     };
     plansState = [...plansState, newPlan];
+    auditLogsState = [
+      {
+        id: `audit_${Date.now()}`,
+        who: currentAuthUser.name,
+        role: currentAuthUser.role,
+        change: `Created new subscription tier: ${newPlan.name}`,
+        timestamp: 'Just now',
+      },
+      ...auditLogsState,
+    ];
     return newPlan as T;
   }
 
   if (pathname.startsWith('/plans/') && method === 'DELETE') {
     const id = pathname.replace('/plans/', '');
+    const toDelete = plansState.find((p) => p.id === id);
     plansState = plansState.filter((p) => p.id !== id);
+    if (toDelete) {
+      auditLogsState = [
+        {
+          id: `audit_${Date.now()}`,
+          who: currentAuthUser.name,
+          role: currentAuthUser.role,
+          change: `Deleted subscription tier: ${toDelete.name}`,
+          timestamp: 'Just now',
+        },
+        ...auditLogsState,
+      ];
+    }
     return undefined as T;
   }
 
@@ -560,6 +583,16 @@ export async function mockApiHandler<T>(path: string, options: RequestInit = {})
       ...body,
     };
     customersState = [newCust, ...customersState];
+    auditLogsState = [
+      {
+        id: `audit_${Date.now()}`,
+        who: currentAuthUser.name,
+        role: currentAuthUser.role,
+        change: `Registered new customer: ${newCust.name}`,
+        timestamp: 'Just now',
+      },
+      ...auditLogsState,
+    ];
     return newCust as T;
   }
 
@@ -567,6 +600,18 @@ export async function mockApiHandler<T>(path: string, options: RequestInit = {})
     const id = pathname.replace('/customers/', '').replace('/status', '');
     customersState = customersState.map((c) => (c.id === id ? { ...c, status: body.status } : c));
     const updated = customersState.find((c) => c.id === id);
+    if (updated) {
+      auditLogsState = [
+        {
+          id: `audit_${Date.now()}`,
+          who: currentAuthUser.name,
+          role: currentAuthUser.role,
+          change: `Updated customer ${updated.name} status to ${body.status}`,
+          timestamp: 'Just now',
+        },
+        ...auditLogsState,
+      ];
+    }
     return updated as T;
   }
 

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, type ReactNode } from 'react';
-import { Search, ChevronDown, LogOut, ArrowRightLeft, Menu, X } from 'lucide-react';
+import { Search, ChevronDown, LogOut, Menu, X } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { Badge } from '../common/Badge';
 
@@ -22,7 +22,7 @@ export const Header = ({
   onSearchChange,
   actions,
 }: HeaderProps) => {
-  const { role, currentUserEmail, organizationName, toggleRole, logout, toggleMobileMenu } = useApp();
+  const { role, currentUserEmail, organizationName, logout, toggleMobileMenu } = useApp();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -130,30 +130,11 @@ export const Header = ({
                 <div className="p-2 border-b border-slate-100">
                   <p className="font-bold text-xs text-slate-900 truncate">{effectiveOrgName}</p>
                   <p className="text-[11px] text-slate-500 truncate">{currentUserEmail}</p>
-                  <div className="mt-2">
+                  <div className="mt-2 flex items-center justify-between">
+                    <span className="text-[11px] text-slate-400 font-medium">Account Role:</span>
                     <Badge variant={role === 'Super Admin' ? 'renewal' : 'active'}>{role}</Badge>
                   </div>
                 </div>
-
-                <button
-                  onClick={() => {
-                    toggleRole();
-                    setDropdownOpen(false);
-                  }}
-                  className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors cursor-pointer"
-                >
-                  <div className="flex items-center gap-2">
-                    <ArrowRightLeft className="w-4 h-4 text-indigo-600 shrink-0" />
-                    <span>Switch Role</span>
-                  </div>
-                  <span className="text-[10px] text-indigo-600 font-bold uppercase">
-                    {role === 'Business Owner'
-                      ? 'To Admin'
-                      : role === 'Super Admin'
-                      ? 'To Customer'
-                      : 'To Owner'}
-                  </span>
-                </button>
 
                 <button
                   onClick={() => {

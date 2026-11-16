@@ -126,15 +126,17 @@ export const AlertsPage = () => {
                 icon={<Zap className="w-3.5 h-3.5" />}
                 onClick={() => triggerTestAlert()}
               >
-                Test Trigger
+                <span className="hidden sm:inline">Test Trigger</span>
+                <span className="sm:hidden">Test</span>
               </Button>
               <Button
                 variant="primary"
-                size="md"
+                size="sm"
                 icon={isSaved ? <Check className="w-4 h-4" /> : <BellRing className="w-4 h-4" />}
                 onClick={handleSave}
               >
-                {isSaved ? 'Rules Saved!' : 'Save rules'}
+                <span className="hidden sm:inline">{isSaved ? 'Rules Saved!' : 'Save rules'}</span>
+                <span className="sm:hidden">{isSaved ? 'Saved' : 'Save'}</span>
               </Button>
             </div>
           ) : undefined
