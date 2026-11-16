@@ -354,10 +354,6 @@ export const BusinessDashboard = () => {
                   </button>
                 </div>
               </div>
-
-              <div className="pt-3 border-t border-slate-100 text-[11px] text-slate-400 text-center">
-                Signed in as <strong>John Smith</strong> (Business Owner)
-              </div>
             </Card>
           </div>
         </div>

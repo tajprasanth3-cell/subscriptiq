@@ -7,7 +7,7 @@ import { useApp } from '../context/AppContext';
 import { ShieldCheck, ArrowUpRight, Rocket, Calendar, ArrowRight, Users, Layers, Activity, Receipt, Bell } from 'lucide-react';
 
 export const AdminPage = () => {
-  const { adminStats, auditLogs, role, setCurrentTab } = useApp();
+  const { adminStats, auditLogs, setCurrentTab } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
   const [timePeriod, setTimePeriod] = useState('Last 30 Days');
 
@@ -42,10 +42,6 @@ export const AdminPage = () => {
                 <option value="This Year">This Year</option>
               </select>
             </div>
-
-            <span className="text-xs font-semibold text-slate-500 hidden md:inline">
-              Role: <strong className="text-indigo-600">{role}</strong>
-            </span>
           </div>
         }
       />
