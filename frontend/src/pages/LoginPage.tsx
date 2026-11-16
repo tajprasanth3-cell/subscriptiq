@@ -13,7 +13,6 @@ import {
   KeyRound,
   Mail,
   Lock,
-  ShieldCheck,
 } from 'lucide-react';
 import { Button } from '../components/common/Button';
 import { useApp } from '../context/AppContext';
@@ -22,9 +21,9 @@ import clsx from 'clsx';
 export const LoginPage = () => {
   const { login, register, resetPassword } = useApp();
 
-  // Form credentials initialized with valid preset
-  const [email, setEmail] = useState('owner@acme.com');
-  const [password, setPassword] = useState('password123');
+  // Manual form credentials
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -295,69 +294,6 @@ export const LoginPage = () => {
                 </span>
               )}
             </Button>
-
-            {/* Quick Demo Credentials Fillers */}
-            <div className="pt-2">
-              <div className="flex items-center justify-between text-[11px] text-slate-500 mb-1.5 font-medium">
-                <span>Demo Accounts (click to fill):</span>
-              </div>
-              <div className="grid grid-cols-3 gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEmail('owner@acme.com');
-                    setPassword('password123');
-                    setFormError('');
-                  }}
-                  className={clsx(
-                    'py-1.5 px-2 rounded-lg border text-[11px] font-semibold transition-all flex items-center justify-center gap-1 cursor-pointer truncate',
-                    email === 'owner@acme.com'
-                      ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
-                      : 'border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600'
-                  )}
-                  title="Business Owner: owner@acme.com / password123"
-                >
-                  <Building className="w-3 h-3 text-indigo-600 shrink-0" />
-                  <span className="truncate">Owner</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEmail('customer@techcorp.io');
-                    setPassword('custpass');
-                    setFormError('');
-                  }}
-                  className={clsx(
-                    'py-1.5 px-2 rounded-lg border text-[11px] font-semibold transition-all flex items-center justify-center gap-1 cursor-pointer truncate',
-                    email === 'customer@techcorp.io'
-                      ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
-                      : 'border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600'
-                  )}
-                  title="Customer Portal: customer@techcorp.io / custpass"
-                >
-                  <User className="w-3 h-3 text-indigo-600 shrink-0" />
-                  <span className="truncate">Customer</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEmail('admin@subscriptiq.platform');
-                    setPassword('adminpass');
-                    setFormError('');
-                  }}
-                  className={clsx(
-                    'py-1.5 px-2 rounded-lg border text-[11px] font-semibold transition-all flex items-center justify-center gap-1 cursor-pointer truncate',
-                    email === 'admin@subscriptiq.platform'
-                      ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
-                      : 'border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600'
-                  )}
-                  title="Super Admin: admin@subscriptiq.platform / adminpass"
-                >
-                  <ShieldCheck className="w-3 h-3 text-indigo-600 shrink-0" />
-                  <span className="truncate">Admin</span>
-                </button>
-              </div>
-            </div>
 
             {/* Social logins matching PDF slide 2 */}
             <div className="relative my-4 flex items-center justify-center">
