@@ -13,6 +13,7 @@ import {
   KeyRound,
   Mail,
   Lock,
+  ShieldCheck,
 } from 'lucide-react';
 import { Button } from '../components/common/Button';
 import { useApp } from '../context/AppContext';
@@ -46,6 +47,7 @@ export const LoginPage = () => {
   const [regMobile, setRegMobile] = useState('');
   const [regPassword, setRegPassword] = useState('');
   const [regError, setRegError] = useState('');
+  const [isRegistering, setIsRegistering] = useState(false);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -93,7 +95,7 @@ export const LoginPage = () => {
     }
   };
 
-  const handleRegisterSubmit = (e: FormEvent) => {
+  const handleRegisterSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setRegError('');
     if (!regOrgName.trim()) {
@@ -121,12 +123,24 @@ export const LoginPage = () => {
       return;
     }
 
-    setShowRegisterModal(false);
-    register(regOrgName.trim(), regEmail.trim(), regPassword, regRole, regMobile.trim());
-    setRegOrgName('');
-    setRegEmail('');
-    setRegMobile('');
-    setRegPassword('');
+    setIsRegistering(true);
+    const ok = await register(
+      regOrgName.trim(),
+      regEmail.trim(),
+      regPassword,
+      regRole,
+      regMobile.trim()
+    );
+    setIsRegistering(false);
+    if (ok) {
+      setShowRegisterModal(false);
+      setRegOrgName('');
+      setRegEmail('');
+      setRegMobile('');
+      setRegPassword('');
+    } else {
+      setRegError('Failed to complete registration. Please check your network or try another email.');
+    }
   };
 
   return (
@@ -281,6 +295,69 @@ export const LoginPage = () => {
                 </span>
               )}
             </Button>
+
+            {/* Quick Demo Credentials Fillers */}
+            <div className="pt-2">
+              <div className="flex items-center justify-between text-[11px] text-slate-500 mb-1.5 font-medium">
+                <span>Demo Accounts (click to fill):</span>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEmail('owner@acme.com');
+                    setPassword('password123');
+                    setFormError('');
+                  }}
+                  className={clsx(
+                    'py-1.5 px-2 rounded-lg border text-[11px] font-semibold transition-all flex items-center justify-center gap-1 cursor-pointer truncate',
+                    email === 'owner@acme.com'
+                      ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                      : 'border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600'
+                  )}
+                  title="Business Owner: owner@acme.com / password123"
+                >
+                  <Building className="w-3 h-3 text-indigo-600 shrink-0" />
+                  <span className="truncate">Owner</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEmail('customer@techcorp.io');
+                    setPassword('custpass');
+                    setFormError('');
+                  }}
+                  className={clsx(
+                    'py-1.5 px-2 rounded-lg border text-[11px] font-semibold transition-all flex items-center justify-center gap-1 cursor-pointer truncate',
+                    email === 'customer@techcorp.io'
+                      ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                      : 'border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600'
+                  )}
+                  title="Customer Portal: customer@techcorp.io / custpass"
+                >
+                  <User className="w-3 h-3 text-indigo-600 shrink-0" />
+                  <span className="truncate">Customer</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEmail('admin@subscriptiq.platform');
+                    setPassword('adminpass');
+                    setFormError('');
+                  }}
+                  className={clsx(
+                    'py-1.5 px-2 rounded-lg border text-[11px] font-semibold transition-all flex items-center justify-center gap-1 cursor-pointer truncate',
+                    email === 'admin@subscriptiq.platform'
+                      ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                      : 'border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600'
+                  )}
+                  title="Super Admin: admin@subscriptiq.platform / adminpass"
+                >
+                  <ShieldCheck className="w-3 h-3 text-indigo-600 shrink-0" />
+                  <span className="truncate">Admin</span>
+                </button>
+              </div>
+            </div>
 
             {/* Social logins matching PDF slide 2 */}
             <div className="relative my-4 flex items-center justify-center">
@@ -621,8 +698,15 @@ export const LoginPage = () => {
                 <Button variant="outline" type="button" onClick={() => setShowRegisterModal(false)}>
                   Cancel
                 </Button>
-                <Button variant="primary" type="submit">
-                  {regRole === 'Customer' ? 'Create Customer Account' : 'Complete Registration'}
+                <Button variant="primary" type="submit" disabled={isRegistering}>
+                  {isRegistering ? (
+                    <span className="flex items-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Registering...</span>
+                    </span>
+                  ) : (
+                    <span>{regRole === 'Customer' ? 'Create Customer Account' : 'Complete Registration'}</span>
+                  )}
                 </Button>
               </div>
             </form>

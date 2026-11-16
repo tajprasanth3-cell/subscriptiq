@@ -71,7 +71,7 @@ interface AppContextType {
     password: string,
     roleToRegister?: Role,
     mobile?: string
-  ) => void;
+  ) => Promise<boolean>;
   logout: () => void;
   toggleRole: () => void;
   setRole: (role: Role) => void;
@@ -424,41 +424,42 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const register = (
+  const register = async (
     organizationNameInput: string,
     email: string,
     password: string,
     roleToRegister: Role = 'Business Owner',
     mobile?: string
-  ) => {
-    void (async () => {
+  ): Promise<boolean> => {
+    try {
+      const result = await api.auth.register(
+        organizationNameInput,
+        email,
+        password,
+        roleToRegister,
+        mobile
+      );
+      setToken(result.token);
+      applyUser(result.user);
+      setIsAuthenticated(true);
+      setCurrentTabState(result.user.role === 'Super Admin' ? 'admin' : 'dashboard');
+      setIsMobileMenuOpen(false);
       try {
-        const result = await api.auth.register(
-          organizationNameInput,
-          email,
-          password,
-          roleToRegister,
-          mobile
-        );
-        setToken(result.token);
-        applyUser(result.user);
-        setIsAuthenticated(true);
-        setCurrentTabState('dashboard');
-        try {
-          await loadWorkspace(result.user.role);
-        } catch (error) {
-          fail(error);
-        }
-        showToast(
-          roleToRegister === 'Customer'
-            ? `Customer account for "${organizationNameInput}" created!`
-            : `Organization "${organizationNameInput}" registered!`,
-          'success'
-        );
+        await loadWorkspace(result.user.role);
       } catch (error) {
         fail(error);
       }
-    })();
+      showToast(
+        roleToRegister === 'Customer'
+          ? `Customer account for "${organizationNameInput}" created!`
+          : `Organization "${organizationNameInput}" registered!`,
+        'success'
+      );
+      return true;
+    } catch (error) {
+      fail(error);
+      return false;
+    }
   };
 
   const logout = () => {
