@@ -35,12 +35,12 @@ import {
   ApiError,
   api,
   clearToken,
-  getToken,
   setToken,
   type AuthUser,
   type Subscription,
 } from '../services/api';
 import type { PaymentGatewayOptions } from '../components/payment/PaymentGatewayModal';
+import { downloadInvoicePdf } from '../utils/invoicePdf';
 
 export type NavTabId =
   | 'dashboard'
@@ -109,6 +109,7 @@ interface AppContextType {
   selectedInvoiceForModal: Invoice | null;
   setSelectedInvoiceForModal: (inv: Invoice | null) => void;
   downloadInvoicePDF: (invoiceId: string) => void;
+  previewInvoicePDF: (invoiceId: string) => void;
   payInvoice: (invoiceId: string) => Promise<Invoice | null>;
 
   // Customers
@@ -156,8 +157,8 @@ const DEMO_CREDENTIALS: Record<Role, { email: string; password: string }> = {
 export const AppContext = createContext<AppContextType | null>(null);
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
-  // Auth state
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => Boolean(getToken()));
+  // Auth state - always display the Login Page first on fresh launch/visit
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [currentUserEmail, setCurrentUserEmail] = useState<string>('');
   const [role, setRoleState] = useState<Role>('Business Owner');
   const [organizationName, setOrganizationName] = useState<string>('');
@@ -351,36 +352,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     return next;
   }, [loadWorkspace, role]);
 
-  // Restore an existing session on boot once.
-  const hasBootstrappedRef = useRef(false);
+  // Always present the Login Page first when loading the hosted application.
   useEffect(() => {
-    if (hasBootstrappedRef.current) {
-      return;
-    }
-    hasBootstrappedRef.current = true;
-
-    if (!getToken()) {
-      return;
-    }
-
-    void (async () => {
-      try {
-        const { user } = await api.auth.me();
-        applyUser(user);
-        setIsAuthenticated(true);
-        setCurrentTabState(user.role === 'Super Admin' ? 'admin' : 'dashboard');
-        try {
-          await loadWorkspace(user.role);
-        } catch (error) {
-          console.warn('Background workspace load warning on boot:', error);
-        }
-      } catch (err) {
-        console.warn('Session expired or invalid token:', err);
-        clearToken();
-        setIsAuthenticated(false);
-      }
-    })();
-  }, [applyUser, loadWorkspace]);
+    clearToken();
+  }, []);
 
   const login = async (email: string, password: string, role?: Role): Promise<boolean> => {
     try {
@@ -631,6 +606,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       invoiceId === 'inv_current'
         ? currentInvoice
         : billingHistory.find((inv) => inv.id === invoiceId) || currentInvoice;
+    void downloadInvoicePdf(invoice);
+  };
+
+  const previewInvoicePDF = (invoiceId: string) => {
+    const invoice =
+      invoiceId === 'inv_current'
+        ? currentInvoice
+        : billingHistory.find((inv) => inv.id === invoiceId) || currentInvoice;
     setSelectedInvoiceForModal(invoice);
   };
 
@@ -764,6 +747,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         selectedInvoiceForModal,
         setSelectedInvoiceForModal,
         downloadInvoicePDF,
+        previewInvoicePDF,
         payInvoice,
         customers,
         addCustomer,
