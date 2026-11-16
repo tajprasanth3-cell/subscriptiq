@@ -144,5 +144,5 @@ G:\Subscript\
 1. **Idempotent Ingestion Testing**: On the **Usage** screen, click **"Test Duplicate"** to verify that duplicate event IDs are intercepted, marked as `Duplicate, ignored`, and do not double-bill customer quotas.
 2. **Dynamic Quota Progress Meters**: Meter colors dynamically shift from Emerald (&le;70%) to Indigo (71–90%) to Amber (&gt;90%) to indicate proximity to thresholds.
 3. **Interactive Tax Invoices**: Clicking **"Download invoice"** on any page opens a preview modal with verified payment details, line items, and taxes plus one-click PDF download (generated with jsPDF).
-4. **Role Switching**: Click the profile avatar or organization card to seamlessly toggle between **Business Owner** and **Super Admin**.
+
 
