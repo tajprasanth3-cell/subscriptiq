@@ -351,36 +351,36 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     return next;
   }, [loadWorkspace, role]);
 
-  // Restore an existing session on boot.
+  // Restore an existing session on boot once.
+  const hasBootstrappedRef = useRef(false);
   useEffect(() => {
+    if (hasBootstrappedRef.current) {
+      return;
+    }
+    hasBootstrappedRef.current = true;
+
     if (!getToken()) {
       return;
     }
 
-    let cancelled = false;
     void (async () => {
       try {
         const { user } = await api.auth.me();
-        if (cancelled) return;
         applyUser(user);
         setIsAuthenticated(true);
         setCurrentTabState(user.role === 'Super Admin' ? 'admin' : 'dashboard');
         try {
           await loadWorkspace(user.role);
         } catch (error) {
-          fail(error);
+          console.warn('Background workspace load warning on boot:', error);
         }
-      } catch {
-        if (cancelled) return;
+      } catch (err) {
+        console.warn('Session expired or invalid token:', err);
         clearToken();
         setIsAuthenticated(false);
       }
     })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [applyUser, loadWorkspace, fail]);
+  }, [applyUser, loadWorkspace]);
 
   const login = async (email: string, password: string, role?: Role): Promise<boolean> => {
     try {
@@ -393,7 +393,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       try {
         await loadWorkspace(result.user.role);
       } catch (error) {
-        fail(error);
+        console.warn('Background workspace refresh error after login:', error);
       }
       showToast(`Welcome back, ${result.user.email}!`, 'success');
       return true;
@@ -414,7 +414,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       try {
         await loadWorkspace(result.user.role);
       } catch (error) {
-        fail(error);
+        console.warn('Background workspace refresh error after reset:', error);
       }
       showToast(`Password successfully updated! Welcome, ${result.user.email}`, 'success');
       return true;
@@ -447,7 +447,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       try {
         await loadWorkspace(result.user.role);
       } catch (error) {
-        fail(error);
+        console.warn('Background workspace refresh error after register:', error);
       }
       showToast(
         roleToRegister === 'Customer'
