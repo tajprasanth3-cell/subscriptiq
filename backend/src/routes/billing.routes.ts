@@ -19,8 +19,8 @@ billingRouter.use(authenticate);
 
 billingRouter.get(
   '/current',
-  asyncHandler(async (_req, res) => {
-    ok(res, getCurrentInvoice(getStore()));
+  asyncHandler(async (req, res) => {
+    ok(res, getCurrentInvoice(getStore(), req.user?.role));
   })
 );
 
@@ -28,7 +28,7 @@ billingRouter.get(
   '/invoices',
   validate({ query: invoicesQuerySchema }),
   asyncHandler(async (req, res) => {
-    ok(res, listInvoices(getStore(), req.query as unknown as never));
+    ok(res, listInvoices(getStore(), req.query as unknown as never, req.user?.role));
   })
 );
 

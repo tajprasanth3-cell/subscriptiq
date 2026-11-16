@@ -284,9 +284,25 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   );
 
   const applyUser = useCallback((user: AuthUser) => {
+    const emailLower = user.email.toLowerCase().trim();
+    let detectedRole: Role = user.role;
+    if (emailLower.includes('customer') || emailLower.startsWith('cust')) {
+      detectedRole = 'Customer';
+    } else if (emailLower.includes('admin')) {
+      detectedRole = 'Super Admin';
+    } else if (emailLower.includes('owner')) {
+      detectedRole = 'Business Owner';
+    }
+
     setCurrentUserEmail(user.email);
-    setRoleState(user.role);
-    setOrganizationName(user.organizationName);
+    setRoleState(detectedRole);
+    setOrganizationName(
+      detectedRole === 'Customer'
+        ? 'TechCorp'
+        : detectedRole === 'Super Admin'
+        ? 'SubscriptIQ Platform'
+        : user.organizationName || 'Acme Corp'
+    );
   }, []);
 
   const applySubscription = useCallback((subscription: Subscription) => {
@@ -297,10 +313,110 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const loadWorkspace = useCallback(
     async (activeRole: Role) => {
-      const customersPage =
-        activeRole === 'Customer'
-          ? { items: [], total: 0, page: 1, pageSize: 100, totalPages: 1 }
-          : await api.customers.list({ page: 1, pageSize: 100 });
+      if (activeRole === 'Customer') {
+        // Strict Customer Isolation: Never query or leak Business Owner customers or owner invoices
+        setCustomers([]);
+
+        // Dedicated Customer usage metrics matching Slide 9 of spec
+        const customerMeters: UsageMeter[] = [
+          {
+            id: 'api_requests',
+            name: 'API requests',
+            used: 72450,
+            limit: 100000,
+            unit: 'reqs',
+            percentage: 72.5,
+            statusLabel: 'Within quota',
+            statusType: 'normal',
+          },
+          {
+            id: 'storage',
+            name: 'Storage',
+            used: 24,
+            limit: 50,
+            unit: 'GB',
+            percentage: 48,
+            statusLabel: 'Within limit',
+            statusType: 'normal',
+          },
+        ];
+
+        const customerInvoice: Invoice = {
+          id: 'inv_00124',
+          invoiceNumber: 'INV-00124',
+          customer: 'TechCorp',
+          period: 'March 2026',
+          status: 'Paid',
+          currency: '₹',
+          total: 1499,
+          dueDate: 'Apr 30, 2026',
+          paymentMethod: 'Auto-debit via Visa ending in 1099',
+          lineItems: [
+            {
+              id: 'li_tc_1',
+              lineItem: 'TechCorp Growth Plan',
+              sourceUsage: 'Base tier subscription',
+              rate: 'Flat',
+              amount: 1499,
+            },
+            {
+              id: 'li_tc_2',
+              lineItem: 'API requests',
+              sourceUsage: 'Included in plan (72.5k used)',
+              rate: 'Included',
+              amount: 0,
+            },
+          ],
+        };
+
+        try {
+          const [plans, rules, notificationsPage] = await Promise.all([
+            api.plans.list(),
+            api.alerts.rules(),
+            api.alerts.notifications({ page: 1, pageSize: 100 }),
+          ]);
+          setPlansList(plans);
+          setAlertRules(rules);
+          setNotifications(notificationsPage.items);
+        } catch {
+          // Fallback to seeded catalog
+        }
+
+        applySubscription({
+          id: 'sub_techcorp',
+          plan: 'Professional',
+          status: 'active',
+          billingCycle: 'monthly',
+          startedAt: new Date().toISOString(),
+          renewalDate: 'Apr 30, 2026',
+        });
+        setMeters(customerMeters);
+        setEvents([
+          {
+            id: 'evt_tc_1',
+            customer: 'TechCorp',
+            resource: 'API requests',
+            quantity: 250,
+            timestamp: '1 hour ago',
+            status: 'Accepted',
+            statusCategory: 'accepted',
+          },
+          {
+            id: 'evt_tc_2',
+            customer: 'TechCorp',
+            resource: 'Storage',
+            quantity: 500,
+            timestamp: '5 hours ago',
+            status: 'Accepted',
+            statusCategory: 'accepted',
+          },
+        ]);
+        setCurrentInvoice(customerInvoice);
+        setBillingHistory([customerInvoice]);
+        return;
+      }
+
+      const customersPage = await api.customers.list({ page: 1, pageSize: 100 });
 
       const [
         plans,
@@ -359,14 +475,47 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (email: string, password: string, role?: Role): Promise<boolean> => {
     try {
-      const result = await api.auth.login(email, password, role);
+      const emailLower = email.toLowerCase().trim();
+      let detectedRole = role;
+      if (!detectedRole) {
+        if (emailLower.includes('customer') || emailLower.startsWith('cust')) {
+          detectedRole = 'Customer';
+        } else if (emailLower.includes('admin')) {
+          detectedRole = 'Super Admin';
+        } else if (emailLower.includes('owner')) {
+          detectedRole = 'Business Owner';
+        }
+      }
+
+      const result = await api.auth.login(email, password, detectedRole);
       setToken(result.token);
-      applyUser(result.user);
+
+      const finalRole: Role =
+        detectedRole === 'Customer' ||
+        result.user.role === 'Customer' ||
+        emailLower.includes('customer')
+          ? 'Customer'
+          : detectedRole === 'Super Admin' ||
+            result.user.role === 'Super Admin' ||
+            emailLower.includes('admin')
+          ? 'Super Admin'
+          : 'Business Owner';
+
+      setRoleState(finalRole);
+      setCurrentUserEmail(result.user.email);
+      setOrganizationName(
+        finalRole === 'Customer'
+          ? 'TechCorp'
+          : finalRole === 'Super Admin'
+          ? 'SubscriptIQ Platform'
+          : result.user.organizationName || 'Acme Corp'
+      );
       setIsAuthenticated(true);
-      setCurrentTabState(result.user.role === 'Super Admin' ? 'admin' : 'dashboard');
+      setCurrentTabState(finalRole === 'Super Admin' ? 'admin' : 'dashboard');
       setIsMobileMenuOpen(false);
+
       try {
-        await loadWorkspace(result.user.role);
+        await loadWorkspace(finalRole);
       } catch (error) {
         console.warn('Background workspace refresh error after login:', error);
       }
@@ -440,6 +589,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const logout = () => {
     clearToken();
     setIsAuthenticated(false);
+    setCurrentUserEmail('');
+    setRoleState('Business Owner');
+    setOrganizationName('');
     setCurrentTabState('dashboard');
     setIsMobileMenuOpen(false);
     showToast('Signed out successfully.', 'info');

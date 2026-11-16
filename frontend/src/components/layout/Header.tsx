@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect, type ReactNode } from 'react';
 import { Search, ChevronDown, LogOut, Menu, X } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
-import { Badge } from '../common/Badge';
 
 interface HeaderProps {
   title: string;
@@ -119,7 +118,7 @@ export const Header = ({
                 <p className="font-bold text-slate-900 leading-tight truncate max-w-[110px]">
                   {effectiveOrgName}
                 </p>
-                <p className="text-[10px] text-slate-400 font-medium">{role}</p>
+                <p className="text-[10px] text-slate-400 font-medium truncate max-w-[110px]">{currentUserEmail}</p>
               </div>
               <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600 transition-transform hidden sm:block shrink-0" />
             </button>
@@ -130,10 +129,6 @@ export const Header = ({
                 <div className="p-2 border-b border-slate-100">
                   <p className="font-bold text-xs text-slate-900 truncate">{effectiveOrgName}</p>
                   <p className="text-[11px] text-slate-500 truncate">{currentUserEmail}</p>
-                  <div className="mt-2 flex items-center justify-between">
-                    <span className="text-[11px] text-slate-400 font-medium">Account Role:</span>
-                    <Badge variant={role === 'Super Admin' ? 'renewal' : 'active'}>{role}</Badge>
-                  </div>
                 </div>
 
                 <button

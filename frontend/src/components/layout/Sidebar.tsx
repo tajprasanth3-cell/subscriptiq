@@ -121,9 +121,6 @@ export const Sidebar = () => {
             </div>
             <div>
               <span className="font-bold text-xl text-slate-900 tracking-tight block">SubscriptIQ</span>
-              <span className="text-[10px] font-semibold text-indigo-600 uppercase tracking-wider block -mt-1">
-                {role}
-              </span>
             </div>
           </div>
 
@@ -198,7 +195,7 @@ export const Sidebar = () => {
                 </p>
                 <div className="flex items-center gap-1.5 mt-0.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-                  <p className="text-[11px] text-slate-500 font-medium truncate">{role}</p>
+                  <p className="text-[11px] text-emerald-600 font-medium truncate">Workspace Active</p>
                 </div>
               </div>
             </div>

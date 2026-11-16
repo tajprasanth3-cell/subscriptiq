@@ -6,7 +6,11 @@ import { recordAudit, type AuditActor } from './audit.service';
 
 export const CURRENT_INVOICE_ID = 'inv_current';
 
-export function getCurrentInvoice(store: Store): Invoice {
+export function getCurrentInvoice(store: Store, role?: string): Invoice {
+  if (role === 'Customer') {
+    const customerInv = store.data.invoices.find((i) => (i.customer ?? '').toLowerCase().includes('techcorp'));
+    if (customerInv) return customerInv;
+  }
   const invoice = store.data.invoices.find((i) => i.id === CURRENT_INVOICE_ID);
   if (!invoice) throw ApiError.notFound('Current invoice not found');
   return invoice;
@@ -24,9 +28,12 @@ export interface ListInvoicesQuery {
   pageSize: number;
 }
 
-export function listInvoices(store: Store, query: ListInvoicesQuery): Paginated<Invoice> {
+export function listInvoices(store: Store, query: ListInvoicesQuery, role?: string): Paginated<Invoice> {
   const search = query.search.trim().toLowerCase();
-  const history = store.data.invoices.filter((i) => i.id !== CURRENT_INVOICE_ID);
+  let history = store.data.invoices.filter((i) => i.id !== CURRENT_INVOICE_ID);
+  if (role === 'Customer') {
+    history = history.filter((i) => (i.customer ?? '').toLowerCase().includes('techcorp'));
+  }
   const filtered = history.filter(
     (inv) =>
       search === '' ||

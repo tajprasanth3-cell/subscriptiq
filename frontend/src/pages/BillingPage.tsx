@@ -28,6 +28,7 @@ export const BillingPage = () => {
     currentInvoice,
     billingHistory,
     downloadInvoicePDF,
+    previewInvoicePDF,
     role,
     organizationName,
     openPaymentGateway,
@@ -302,7 +303,7 @@ export const BillingPage = () => {
                       <td className="py-4 px-6 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <button
-                            onClick={() => downloadInvoicePDF(hist.id)}
+                            onClick={() => previewInvoicePDF(hist.id)}
                             className="p-1.5 text-slate-400 hover:text-indigo-600 rounded-lg hover:bg-slate-100 cursor-pointer"
                             title="Preview invoice"
                           >

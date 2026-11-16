@@ -25,8 +25,8 @@ usageRouter.use(authenticate);
 
 usageRouter.get(
   '/meters',
-  asyncHandler(async (_req, res) => {
-    ok(res, listMeters(getStore()));
+  asyncHandler(async (req, res) => {
+    ok(res, listMeters(getStore(), req.user?.role));
   })
 );
 
@@ -53,7 +53,7 @@ usageRouter.get(
   '/events',
   validate({ query: usageEventsQuerySchema }),
   asyncHandler(async (req, res) => {
-    ok(res, listEvents(getStore(), req.query as unknown as never));
+    ok(res, listEvents(getStore(), req.query as unknown as never, req.user?.role));
   })
 );
 

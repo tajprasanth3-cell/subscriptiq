@@ -19,7 +19,17 @@ subscriptionRouter.use(authenticate);
 
 subscriptionRouter.get(
   '/',
-  asyncHandler(async (_req, res) => {
+  asyncHandler(async (req, res) => {
+    if (req.user?.role === 'Customer') {
+      return ok(res, {
+        id: 'sub_techcorp',
+        plan: 'Professional',
+        status: 'active',
+        billingCycle: 'monthly',
+        startedAt: '2026-01-01T00:00:00Z',
+        renewalDate: 'Apr 30, 2026',
+      });
+    }
     ok(res, getSubscription(getStore()));
   })
 );

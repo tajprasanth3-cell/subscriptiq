@@ -1,5 +1,4 @@
 import type { NextFunction, Request, Response } from 'express';
-import { env } from '../config/env';
 import { ApiError } from '../utils/ApiError';
 
 export function notFoundHandler(req: Request, _res: Response, next: NextFunction): void {
@@ -26,10 +25,9 @@ export function errorHandler(
   res.status(apiError.statusCode).json({
     error: {
       code: apiError.code,
-      message: apiError.message,
-      details: apiError.details,
+      message: err instanceof Error ? `${apiError.message}: ${err.message}` : apiError.message,
+      details: apiError.details ?? (err instanceof Error ? err.stack : undefined),
       requestId: req.requestId,
-      ...(env.isProduction ? {} : { stack: err instanceof Error ? err.stack : undefined }),
     },
   });
 }

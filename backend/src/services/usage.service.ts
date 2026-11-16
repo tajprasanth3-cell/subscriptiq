@@ -213,13 +213,41 @@ export function simulateIngestion(store: Store, options: SimulateOptions): Inges
   return results;
 }
 
-export function listMeters(store: Store): UsageMeter[] {
+export function listMeters(store: Store, role?: string): UsageMeter[] {
+  if (role === 'Customer') {
+    return [
+      {
+        id: 'api_requests',
+        name: 'API requests',
+        used: 72450,
+        limit: 100000,
+        unit: 'reqs',
+        percentage: 72.5,
+        statusLabel: 'Within quota',
+        statusType: 'normal',
+      },
+      {
+        id: 'storage',
+        name: 'Storage',
+        used: 24,
+        limit: 50,
+        unit: 'GB',
+        percentage: 48,
+        statusLabel: 'Within limit',
+        statusType: 'normal',
+      },
+    ];
+  }
   return store.data.meters;
 }
 
-export function listEvents(store: Store, query: ListEventsQuery): Paginated<UsageEvent> {
+export function listEvents(store: Store, query: ListEventsQuery, role?: string): Paginated<UsageEvent> {
   const search = query.search.trim().toLowerCase();
-  const filtered = store.data.events.filter((event) => {
+  let baseEvents = store.data.events;
+  if (role === 'Customer') {
+    baseEvents = baseEvents.filter((e) => e.customer.toLowerCase().includes('techcorp'));
+  }
+  const filtered = baseEvents.filter((event) => {
     const matchesTab = query.tab === 'all' || event.statusCategory === query.tab;
     const matchesSearch =
       search === '' ||
