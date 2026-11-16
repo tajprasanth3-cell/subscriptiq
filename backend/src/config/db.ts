@@ -10,8 +10,10 @@ try {
 }
 
 export async function connectDatabase(): Promise<boolean> {
-  if (!env.mongoUri) {
-    console.log('  MongoDB     : No MONGODB_URI specified (running in local file/in-memory mode)');
+  // On Vercel serverless, skip localhost connection attempts that will ECONNREFUSED
+  const isLocalhost = env.mongoUri.includes('127.0.0.1') || env.mongoUri.includes('localhost');
+  if (!env.mongoUri || (process.env.VERCEL && isLocalhost)) {
+    console.log('  MongoDB     : Running in fast in-memory persistence mode (serverless)');
     return false;
   }
 

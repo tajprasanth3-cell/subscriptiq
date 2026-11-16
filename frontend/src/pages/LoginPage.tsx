@@ -11,21 +11,65 @@ import {
   Loader2,
   AlertTriangle,
   KeyRound,
+  Mail,
+  Lock,
+  ShieldCheck,
 } from 'lucide-react';
 import { Button } from '../components/common/Button';
 import { useApp } from '../context/AppContext';
+import type { Role } from '../types';
 import clsx from 'clsx';
+
+const PORTALS: { role: Role; label: string; icon: typeof Building; email: string; pass: string; badge: string }[] = [
+  {
+    role: 'Business Owner',
+    label: 'Business Owner',
+    icon: Building,
+    email: 'owner@acme.com',
+    pass: 'password123',
+    badge: 'Acme Corp',
+  },
+  {
+    role: 'Customer',
+    label: 'Customer Portal',
+    icon: User,
+    email: 'customer@techcorp.io',
+    pass: 'custpass',
+    badge: 'TechCorp',
+  },
+  {
+    role: 'Super Admin',
+    label: 'Super Admin',
+    icon: ShieldCheck,
+    email: 'admin@subscriptiq.platform',
+    pass: 'adminpass',
+    badge: 'Platform Admin',
+  },
+];
 
 export const LoginPage = () => {
   const { login, register, resetPassword } = useApp();
 
-  // Form credentials
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  // Portal selection
+  const [selectedPortal, setSelectedPortal] = useState<Role>('Business Owner');
+
+  // Form credentials initialized with valid preset
+  const [email, setEmail] = useState('owner@acme.com');
+  const [password, setPassword] = useState('password123');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
+
+  const selectPortal = (portalRole: Role) => {
+    setSelectedPortal(portalRole);
+    const target = PORTALS.find((p) => p.role === portalRole);
+    if (target) {
+      setEmail(target.email);
+      setPassword(target.pass);
+      setFormError('');
+    }
+  };
 
   // Password Reset / Create Password Modal
   const [showResetModal, setShowResetModal] = useState(false);
@@ -53,7 +97,7 @@ export const LoginPage = () => {
       return;
     }
     setIsSubmitting(true);
-    const ok = await login(email.trim(), password.trim());
+    const ok = await login(email.trim(), password.trim(), selectedPortal);
     setIsSubmitting(false);
     if (!ok) {
       setFormError(
@@ -157,11 +201,35 @@ export const LoginPage = () => {
         {/* Form Body */}
         <div className="max-w-md w-full my-auto py-2 sm:py-3">
           <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-            Welcome back
+            Welcome back!
           </h2>
           <p className="text-xs sm:text-sm text-slate-500 mt-1 mb-4">
-            Sign in to your account to access your workspace dashboard.
+            Sign in to access your workspace dashboard.
           </p>
+
+          {/* Portal Switcher Tabs */}
+          <div className="mb-5 p-1 bg-slate-100 rounded-2xl flex items-center gap-1 border border-slate-200/60">
+            {PORTALS.map((p) => {
+              const Icon = p.icon;
+              const isSelected = selectedPortal === p.role;
+              return (
+                <button
+                  key={p.role}
+                  type="button"
+                  onClick={() => selectPortal(p.role)}
+                  className={clsx(
+                    'flex-1 py-2 px-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer',
+                    isSelected
+                      ? 'bg-white text-indigo-900 shadow-xs border border-slate-200/80'
+                      : 'text-slate-500 hover:text-slate-800'
+                  )}
+                >
+                  <Icon className={clsx('w-3.5 h-3.5', isSelected ? 'text-indigo-600' : 'text-slate-400')} />
+                  <span className="truncate">{p.label}</span>
+                </button>
+              );
+            })}
+          </div>
 
           {/* Inline Error Alert with Recovery Actions */}
           {formError && (
@@ -196,17 +264,20 @@ export const LoginPage = () => {
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
                 Email / username
               </label>
-              <input
-                type="text"
-                required
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  setFormError('');
-                }}
-                placeholder="you@company.com"
-                className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all shadow-2xs"
-              />
+              <div className="relative">
+                <input
+                  type="text"
+                  required
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setFormError('');
+                  }}
+                  placeholder="Enter your email"
+                  className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all shadow-2xs"
+                />
+                <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
             </div>
 
             <div>
@@ -225,7 +296,7 @@ export const LoginPage = () => {
                   }}
                   className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 cursor-pointer"
                 >
-                  Create / Reset password?
+                  Forgot password?
                 </button>
               </div>
               <div className="relative">
@@ -238,8 +309,9 @@ export const LoginPage = () => {
                     setFormError('');
                   }}
                   placeholder="Enter your password"
-                  className="w-full px-4 py-2.5 pr-11 bg-white border border-slate-200 rounded-xl text-sm placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all shadow-2xs"
+                  className="w-full pl-10 pr-11 py-2.5 bg-white border border-slate-200 rounded-xl text-sm placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all shadow-2xs"
                 />
+                <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
@@ -270,28 +342,51 @@ export const LoginPage = () => {
                 </span>
               ) : (
                 <span className="flex items-center justify-center gap-2">
-                  <span>Sign in</span>
+                  <span>Sign In</span>
                   <ArrowRight className="w-4 h-4 ml-1" />
                 </span>
               )}
             </Button>
+
+            {/* Social logins matching PDF slide 2 */}
+            <div className="relative my-4 flex items-center justify-center">
+              <div className="border-t border-slate-200 w-full" />
+              <span className="bg-white px-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider shrink-0">
+                or continue with
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => login('owner@acme.com', 'password123', selectedPortal)}
+                className="py-2.5 px-4 rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-all flex items-center justify-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer shadow-2xs"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                </svg>
+                <span>Google</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => login('customer@techcorp.io', 'custpass', selectedPortal)}
+                className="py-2.5 px-4 rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-all flex items-center justify-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer shadow-2xs"
+              >
+                <svg className="w-4 h-4 fill-slate-800" viewBox="0 0 24 24">
+                  <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
+                </svg>
+                <span>GitHub</span>
+              </button>
+            </div>
           </form>
 
           {/* Registration footer */}
           <div className="mt-4 text-center">
             <p className="text-xs sm:text-sm text-slate-600">
-              New here?{' '}
-              <button
-                type="button"
-                onClick={() => {
-                  setRegRole('Business Owner');
-                  setShowRegisterModal(true);
-                }}
-                className="font-semibold text-indigo-600 hover:text-indigo-700 hover:underline cursor-pointer"
-              >
-                Register organization
-              </button>{' '}
-              or{' '}
+              Don't have an account?{' '}
               <button
                 type="button"
                 onClick={() => {
@@ -300,7 +395,7 @@ export const LoginPage = () => {
                 }}
                 className="font-semibold text-indigo-600 hover:text-indigo-700 hover:underline cursor-pointer"
               >
-                create a customer account
+                Sign up
               </button>
             </p>
           </div>

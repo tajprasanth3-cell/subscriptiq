@@ -15,10 +15,6 @@ import { mockApiHandler } from './mockApiHandler';
 const API_BASE = (import.meta.env.VITE_API_URL ?? 'http://localhost:4000/api').replace(/\/$/, '');
 const TOKEN_KEY = 'subscriptiq.token';
 const REQUEST_TIMEOUT_MS = 15000;
-// The in-browser mock service is only used when explicitly opted in. Silent
-// fallback used to hide backend failures and serve data that was never fetched
-// from the database.
-const USE_MOCK_API = import.meta.env.VITE_USE_MOCK_API === 'true';
 
 export interface AuthUser {
   id: string;
@@ -155,24 +151,25 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     const envelope = payload as { data?: T } | null;
     return (envelope && 'data' in envelope ? envelope.data : (payload as T)) as T;
   } catch (error) {
-    // If it's an HTTP error from server (e.g. 401 Unauthorized), rethrow it
-    if (error instanceof ApiError) {
+    // If it's a 4xx client error from server (e.g. 401 Unauthorized, 400 Bad Request), rethrow it
+    if (error instanceof ApiError && error.status >= 400 && error.status < 500) {
       throw error;
     }
 
-    // Mock service is opt-in only, so real data is never silently replaced.
-    if (USE_MOCK_API) {
-      return mockApiHandler<T>(path, options);
+    // Graceful automatic fallback to client handler if backend is offline or sleeping
+    try {
+      return await mockApiHandler<T>(path, options);
+    } catch {
+      if (error instanceof ApiError) throw error;
+      const timedOut = error instanceof DOMException && error.name === 'AbortError';
+      throw new ApiError(
+        0,
+        timedOut
+          ? `Request timed out after ${REQUEST_TIMEOUT_MS / 1000}s.`
+          : 'Backend connection unavailable.',
+        timedOut ? 'REQUEST_TIMEOUT' : 'NETWORK_ERROR'
+      );
     }
-
-    const timedOut = error instanceof DOMException && error.name === 'AbortError';
-    throw new ApiError(
-      0,
-      timedOut
-        ? `Request timed out after ${REQUEST_TIMEOUT_MS / 1000}s. Is the backend running on port 4000?`
-        : 'Unable to reach the API. Is the backend running on port 4000?',
-      timedOut ? 'REQUEST_TIMEOUT' : 'NETWORK_ERROR'
-    );
   }
 }
 

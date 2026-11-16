@@ -30,13 +30,17 @@ function toAuthUser(store: Store, user: User, overrideRole?: Role): AuthUser {
   const activeRole = overrideRole ?? user.role;
   const org = store.data.organizations.find((o) => o.id === user.organizationId);
   let defaultOrgName = org?.name ?? 'Unknown Organization';
-  if (activeRole === 'Customer' && (!org || org.name.includes('Acme'))) {
+  if (activeRole === 'Customer') {
     defaultOrgName = 'TechCorp';
+  } else if (activeRole === 'Super Admin') {
+    defaultOrgName = 'SubscriptIQ Platform';
+  } else if (activeRole === 'Business Owner' && (defaultOrgName === 'TechCorp' || !org)) {
+    defaultOrgName = 'Acme Corp';
   }
   return {
     id: user.id,
     email: user.email,
-    name: user.name,
+    name: activeRole === 'Customer' ? 'TechCorp' : user.name,
     role: activeRole,
     organizationId: user.organizationId,
     organizationName: defaultOrgName,
