@@ -13,45 +13,13 @@ import {
   KeyRound,
   Mail,
   Lock,
-  ShieldCheck,
 } from 'lucide-react';
 import { Button } from '../components/common/Button';
 import { useApp } from '../context/AppContext';
-import type { Role } from '../types';
 import clsx from 'clsx';
-
-const PORTALS: { role: Role; label: string; icon: typeof Building; email: string; pass: string; badge: string }[] = [
-  {
-    role: 'Business Owner',
-    label: 'Business Owner',
-    icon: Building,
-    email: 'owner@acme.com',
-    pass: 'password123',
-    badge: 'Acme Corp',
-  },
-  {
-    role: 'Customer',
-    label: 'Customer Portal',
-    icon: User,
-    email: 'customer@techcorp.io',
-    pass: 'custpass',
-    badge: 'TechCorp',
-  },
-  {
-    role: 'Super Admin',
-    label: 'Super Admin',
-    icon: ShieldCheck,
-    email: 'admin@subscriptiq.platform',
-    pass: 'adminpass',
-    badge: 'Platform Admin',
-  },
-];
 
 export const LoginPage = () => {
   const { login, register, resetPassword } = useApp();
-
-  // Portal selection
-  const [selectedPortal, setSelectedPortal] = useState<Role>('Business Owner');
 
   // Form credentials initialized with valid preset
   const [email, setEmail] = useState('owner@acme.com');
@@ -60,16 +28,6 @@ export const LoginPage = () => {
   const [rememberMe, setRememberMe] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
-
-  const selectPortal = (portalRole: Role) => {
-    setSelectedPortal(portalRole);
-    const target = PORTALS.find((p) => p.role === portalRole);
-    if (target) {
-      setEmail(target.email);
-      setPassword(target.pass);
-      setFormError('');
-    }
-  };
 
   // Password Reset / Create Password Modal
   const [showResetModal, setShowResetModal] = useState(false);
@@ -97,7 +55,7 @@ export const LoginPage = () => {
       return;
     }
     setIsSubmitting(true);
-    const ok = await login(email.trim(), password.trim(), selectedPortal);
+    const ok = await login(email.trim(), password.trim());
     setIsSubmitting(false);
     if (!ok) {
       setFormError(
@@ -203,33 +161,9 @@ export const LoginPage = () => {
           <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
             Welcome back!
           </h2>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1 mb-4">
+          <p className="text-xs sm:text-sm text-slate-500 mt-1 mb-5">
             Sign in to access your workspace dashboard.
           </p>
-
-          {/* Portal Switcher Tabs */}
-          <div className="mb-5 p-1 bg-slate-100 rounded-2xl flex items-center gap-1 border border-slate-200/60">
-            {PORTALS.map((p) => {
-              const Icon = p.icon;
-              const isSelected = selectedPortal === p.role;
-              return (
-                <button
-                  key={p.role}
-                  type="button"
-                  onClick={() => selectPortal(p.role)}
-                  className={clsx(
-                    'flex-1 py-2 px-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer',
-                    isSelected
-                      ? 'bg-white text-indigo-900 shadow-xs border border-slate-200/80'
-                      : 'text-slate-500 hover:text-slate-800'
-                  )}
-                >
-                  <Icon className={clsx('w-3.5 h-3.5', isSelected ? 'text-indigo-600' : 'text-slate-400')} />
-                  <span className="truncate">{p.label}</span>
-                </button>
-              );
-            })}
-          </div>
 
           {/* Inline Error Alert with Recovery Actions */}
           {formError && (
@@ -359,7 +293,7 @@ export const LoginPage = () => {
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
-                onClick={() => login('owner@acme.com', 'password123', selectedPortal)}
+                onClick={() => login('owner@acme.com', 'password123')}
                 className="py-2.5 px-4 rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-all flex items-center justify-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer shadow-2xs"
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24">
@@ -372,7 +306,7 @@ export const LoginPage = () => {
               </button>
               <button
                 type="button"
-                onClick={() => login('customer@techcorp.io', 'custpass', selectedPortal)}
+                onClick={() => login('customer@techcorp.io', 'custpass')}
                 className="py-2.5 px-4 rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-all flex items-center justify-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer shadow-2xs"
               >
                 <svg className="w-4 h-4 fill-slate-800" viewBox="0 0 24 24">
