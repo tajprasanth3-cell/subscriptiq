@@ -13,7 +13,7 @@ services:
       - key: PORT
         value: 10000
       - key: CORS_ORIGIN
-        value: https://frontend-eta-murex-51.vercel.app,http://localhost:5173
+        value: https://subscript-app.vercel.app,https://frontend-eta-murex-51.vercel.app,http://localhost:5173
       - key: JWT_SECRET
         generateValue: true
       - key: MONGODB_URI

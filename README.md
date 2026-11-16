@@ -1,10 +1,10 @@
 # SubscriptIQ — Metered Subscription & Usage Ingestion Platform
 
-[![Deploy with Vercel](https://img.shields.io/badge/Live_Frontend-Vercel-black?style=for-the-badge&logo=vercel)](https://frontend-eta-murex-51.vercel.app)
+[![Deploy with Vercel](https://img.shields.io/badge/Live_Frontend-Vercel-black?style=for-the-badge&logo=vercel)](https://subscript-app.vercel.app)
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/tajprasanth3-cell/subscriptiq)
 [![GitHub Repository](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github)](https://github.com/tajprasanth3-cell/subscriptiq)
 
-> 🌐 **Live Web Application (Frontend)**: [https://frontend-eta-murex-51.vercel.app](https://frontend-eta-murex-51.vercel.app)  
+> 🌐 **Live Web Application (Frontend)**: [https://subscript-app.vercel.app](https://subscript-app.vercel.app)  
 > ⚙️ **Backend API Blueprint**: [render.yaml](render.yaml) (Ready to deploy on Render)
 
 SubscriptIQ is a modern, high-precision SaaS metered subscription management and idempotent usage event tracking platform. It enables multi-tenant organizations to monitor resource usage in real time, enforce plan quotas, bill overages predictably, and manage complete subscription lifecycles.
@@ -97,7 +97,7 @@ You can deploy the backend Express API to Render in 1 minute using the built-in 
 4. Add the following **Environment Variables**:
    - `NODE_ENV`: `production`
    - `PORT`: `10000`
-   - `CORS_ORIGIN`: `https://frontend-eta-murex-51.vercel.app,http://localhost:5173`
+   - `CORS_ORIGIN`: `https://subscript-app.vercel.app,http://localhost:5173`
    - `JWT_SECRET`: *(Click Generate or enter a strong secret)*
    - `MONGODB_URI`: *(Optional: your MongoDB Atlas connection string; if omitted, runs in built-in persistent store mode)*
 5. Click **Create Web Service**.
